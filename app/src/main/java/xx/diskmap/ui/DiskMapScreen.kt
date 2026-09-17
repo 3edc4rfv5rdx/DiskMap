@@ -438,7 +438,7 @@ private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: (Node) -
             if (node == null) {
                 Text(
                     text = stringResource(R.string.hint_open) + "  ·  " + stringResource(R.string.hint_select),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
@@ -456,6 +456,7 @@ private fun SelectedItem(vm: DiskMapViewModel, node: Node?, current: Node, onDel
         Column(Modifier.weight(1f)) {
             Text(
                 text = node?.name.orEmpty(),
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -464,7 +465,7 @@ private fun SelectedItem(vm: DiskMapViewModel, node: Node?, current: Node, onDel
                 text = node?.let {
                     formatSize(context, it.size) + "  ·  " + formatPercent(it.size, current.size)
                 }.orEmpty(),
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
