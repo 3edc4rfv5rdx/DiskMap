@@ -20,9 +20,9 @@ is not needed, safely through the app's own trash or for good.
   - tap a folder to open it;
   - to go back up, tap the centre of the rings, tap any folder in the path line, or press Back;
   - press and hold an item to select it.
-- **Trash**: a deleted item is moved to `.DiskMapTrash` on the same storage. The move is
-  instant, and the item can be restored later. A switch in the confirmation dialog
-  deletes it for good instead.
+- **Delete or trash**: a selected item gets three buttons: *Delete* (for good, after a
+  short confirmation), *Cancel* and *To trash*. The trash is `.DiskMapTrash` on the
+  same storage, so the move is instant and can be undone from the trash screen.
 - **Internal storage and SD card**: switch between them from the top bar.
 - **Settings**: light/dark theme, accent colour, language (English, Русский,
   Українська) and an update check.

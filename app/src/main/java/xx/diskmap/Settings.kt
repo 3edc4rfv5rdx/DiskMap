@@ -27,7 +27,6 @@ object AppSettings {
     private const val KEY_THEME = "theme_mode"
     private const val KEY_ACCENT = "accent_index"
     private const val KEY_VIEW = "view_mode"
-    private const val KEY_TO_TRASH = "to_trash"
 
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
@@ -38,17 +37,11 @@ object AppSettings {
     private val _viewMode = MutableStateFlow(ViewMode.RINGS)
     val viewMode: StateFlow<ViewMode> = _viewMode.asStateFlow()
 
-    private val _toTrash = MutableStateFlow(true)
-
-    /** Where the delete dialog's switch starts: the last choice made in it. */
-    val toTrash: StateFlow<Boolean> = _toTrash.asStateFlow()
-
     fun load(context: Context) {
         val prefs = prefs(context)
         _themeMode.value = enumOr(prefs.getString(KEY_THEME, null), ThemeMode.SYSTEM)
         _accentIndex.value = prefs.getInt(KEY_ACCENT, 0).coerceIn(0, ACCENT_COUNT - 1)
         _viewMode.value = enumOr(prefs.getString(KEY_VIEW, null), ViewMode.RINGS)
-        _toTrash.value = prefs.getBoolean(KEY_TO_TRASH, true)
     }
 
     fun setThemeMode(context: Context, mode: ThemeMode) {
@@ -65,11 +58,6 @@ object AppSettings {
     fun setViewMode(context: Context, mode: ViewMode) {
         _viewMode.value = mode
         prefs(context).edit { putString(KEY_VIEW, mode.name) }
-    }
-
-    fun setToTrash(context: Context, on: Boolean) {
-        _toTrash.value = on
-        prefs(context).edit { putBoolean(KEY_TO_TRASH, on) }
     }
 
     private inline fun <reified T : Enum<T>> enumOr(name: String?, fallback: T): T =

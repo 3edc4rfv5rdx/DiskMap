@@ -29,10 +29,7 @@
     <string name="open">Open</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
-    <string name="to_trash">Move to trash</string>
-    <string name="trash_restorable_hint">Can be restored from the trash later</string>
-    <string name="trash_permanent_hint">What is already in the trash is deleted for good</string>
-    <string name="delete_permanent_warning">Deleted for good with no way back</string>
+    <string name="to_trash">To trash</string>
     <string name="moved_to_trash">Moved to trash</string>
     <string name="freed">Freed</string>
     <string name="delete_failed">Could not delete</string>

@@ -156,8 +156,6 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
         val v = volume ?: return
         if (!canDelete(node)) return
         val useTrash = toTrash && !isInTrash(node)
-        // Inside the trash the switch is forced off, which is not a choice to remember.
-        if (!isInTrash(node)) AppSettings.setToTrash(getApplication(), toTrash)
         val path = node.path
         val before = node.size
         runOperation {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,7 +46,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -243,18 +243,21 @@ fun DiskMapScreen(onAbout: () -> Unit) {
         }
     }
 
+    // Only deleting for good asks first: the trash can always be undone.
     deleteTarget?.let { target ->
-        DeleteDialog(
-            node = target,
-            inTrash = vm.isInTrash(target),
+        ConfirmDialog(
+            title = stringResource(R.string.delete_forever) + "?",
+            message = target.name + "  ·  " + formatSize(context, target.size) +
+                if (target.isDir) "  ·  " + stringResource(R.string.files) + ": " + formatCount(target.files) else "",
+            confirmText = stringResource(R.string.delete),
             // Backing out of the delete lets go of the item too.
             onDismiss = {
                 deleteTarget = null
                 vm.select(null)
             },
-            onConfirm = { toTrash ->
+            onConfirm = {
                 deleteTarget = null
-                vm.delete(target, toTrash)
+                vm.delete(target, toTrash = false)
             },
         )
     }
@@ -452,100 +455,56 @@ private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: (Node) -
     }
 }
 
-/** The selection's name, size and actions; with [node] null, the same shape doing nothing. */
+/** Three buttons share the bar's width; the stock side padding leaves their labels no room. */
+private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+
+/**
+ * The selection's name and size, and three actions: delete for good, let go,
+ * move to the trash. With [node] null, the same shape doing nothing.
+ */
 @Composable
 private fun SelectedItem(vm: DiskMapViewModel, node: Node?, current: Node, onDelete: (Node) -> Unit) {
     val context = LocalContext.current
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = node?.name.orEmpty(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = node?.let {
-                    formatSize(context, it.size) + "  ·  " + formatPercent(it.size, current.size)
-                }.orEmpty(),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = { vm.select(null) }, enabled = node != null) {
-            Icon(Icons.Filled.Close, stringResource(R.string.close))
-        }
-    }
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-    ) {
-        if (node?.isDir == true) {
-            OutlinedButton(onClick = { vm.open(node) }) { Text(stringResource(R.string.open)) }
-        }
-        Button(
-            onClick = { node?.let(onDelete) },
-            enabled = node != null && vm.canDelete(node),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
-            ),
-        ) { Text(stringResource(R.string.delete)) }
-    }
-}
-
-@Composable
-private fun DeleteDialog(
-    node: Node,
-    inTrash: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: (toTrash: Boolean) -> Unit,
-) {
-    val context = LocalContext.current
-    val remembered by AppSettings.toTrash.collectAsState()
-    var toTrash by remember { mutableStateOf(remembered && !inTrash) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.delete) + "?") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(node.name, fontWeight = FontWeight.SemiBold)
-                Text(
-                    text = formatSize(context, node.size) +
-                        if (node.isDir) "  ·  " + stringResource(R.string.files) + ": " + formatCount(node.files) else "",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.to_trash), Modifier.weight(1f))
-                    Spacer(Modifier.width(8.dp))
-                    Switch(checked = toTrash, onCheckedChange = { toTrash = it }, enabled = !inTrash)
-                }
-                // Always there and always two lines tall, so the dialog keeps
-                // its size when the switch is flipped.
-                Text(
-                    text = stringResource(
-                        when {
-                            inTrash -> R.string.trash_permanent_hint
-                            toTrash -> R.string.trash_restorable_hint
-                            else -> R.string.delete_permanent_warning
-                        }
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (!inTrash && !toTrash) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    minLines = 2,
-                )
-            }
-        },
-        confirmButton = {
-            DialogConfirmButton(stringResource(R.string.delete), danger = true) { onConfirm(toTrash) }
-        },
-        dismissButton = { DialogDismissButton(stringResource(R.string.cancel), onDismiss) },
+    val enabled = node != null && vm.canDelete(node)
+    Text(
+        text = node?.name.orEmpty(),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
+    Text(
+        text = node?.let {
+            formatSize(context, it.size) + "  ·  " + formatPercent(it.size, current.size)
+        }.orEmpty(),
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Row(
+        Modifier.fillMaxWidth().padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        OutlinedButton(
+            onClick = { node?.let(onDelete) },
+            enabled = enabled,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            contentPadding = BAR_BUTTON_PADDING,
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(R.string.delete), maxLines = 1) }
+        FilledTonalButton(
+            onClick = { vm.select(null) },
+            enabled = node != null,
+            contentPadding = BAR_BUTTON_PADDING,
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(R.string.cancel), maxLines = 1) }
+        // What is already in the trash can only go for good.
+        Button(
+            onClick = { node?.let { vm.delete(it, toTrash = true) } },
+            enabled = node != null && vm.canDelete(node) && !vm.isInTrash(node),
+            contentPadding = BAR_BUTTON_PADDING,
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(R.string.to_trash), maxLines = 1) }
+    }
 }
 
 /** Shown until all-files access is granted. */
