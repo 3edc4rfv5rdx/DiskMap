@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: The path line starts with ~ instead of repeating the storage name the top bar already shows
 - I: 12-PhoneRELEASE.sh installs on the phone again: the early exit from the template is gone
 - F: The chart type is picked from a bar-chart button menu in the top bar instead of a button row above the chart
 - I: gradlew.bat is gone: the project is built on Linux only

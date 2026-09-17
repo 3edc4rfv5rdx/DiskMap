@@ -71,6 +71,9 @@ import xx.diskmap.ViewMode
 
 private enum class Screen { MAP, TRASH, SETTINGS }
 
+/** The storage root in the path line; the top bar already names the storage. */
+private const val ROOT_CRUMB = "~"
+
 private fun ViewMode.labelRes(): Int = when (this) {
     ViewMode.RINGS -> R.string.view_rings
     ViewMode.TILES -> R.string.view_tiles
@@ -231,7 +234,6 @@ fun DiskMapScreen(onAbout: () -> Unit) {
             Screen.MAP -> MapBody(
                 vm = vm,
                 viewMode = viewMode,
-                volumeLabel = volumeLabel,
                 onDelete = { deleteTarget = it },
                 modifier = body,
             )
@@ -255,7 +257,6 @@ fun DiskMapScreen(onAbout: () -> Unit) {
 private fun MapBody(
     vm: DiskMapViewModel,
     viewMode: ViewMode,
-    volumeLabel: String,
     onDelete: (Node) -> Unit,
     modifier: Modifier,
 ) {
@@ -283,7 +284,7 @@ private fun MapBody(
                 }
             }
         } else {
-            MapContent(vm, current, viewMode, volumeLabel, onDelete)
+            MapContent(vm, current, viewMode, onDelete)
         }
     }
 }
@@ -293,11 +294,10 @@ private fun ColumnScope.MapContent(
     vm: DiskMapViewModel,
     current: Node,
     viewMode: ViewMode,
-    volumeLabel: String,
     onDelete: (Node) -> Unit,
 ) {
     val version = vm.treeVersion
-    Breadcrumbs(current, volumeLabel, onOpen = vm::open)
+    Breadcrumbs(current, onOpen = vm::open)
     Summary(vm, current)
 
     val chart = Modifier.weight(1f).fillMaxWidth()
@@ -348,7 +348,7 @@ private fun ColumnScope.MapContent(
 }
 
 @Composable
-private fun Breadcrumbs(current: Node, volumeLabel: String, onOpen: (Node) -> Unit) {
+private fun Breadcrumbs(current: Node, onOpen: (Node) -> Unit) {
     val chain = remember(current) { generateSequence(current) { it.parent }.toList().asReversed() }
     val state = rememberLazyListState()
     LaunchedEffect(chain.size) { state.scrollToItem(chain.lastIndex) }
@@ -367,7 +367,7 @@ private fun Breadcrumbs(current: Node, volumeLabel: String, onOpen: (Node) -> Un
             }
             val last = i == chain.lastIndex
             Text(
-                text = displayName(node, volumeLabel),
+                text = if (node.parent == null) ROOT_CRUMB else node.name,
                 fontWeight = if (last) FontWeight.SemiBold else FontWeight.Normal,
                 color = if (last) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
                 maxLines = 1,

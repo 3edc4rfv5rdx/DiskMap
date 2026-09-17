@@ -35,7 +35,6 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import xx.diskmap.ACCENT_COUNT
-import xx.diskmap.Node
 import xx.diskmap.Notice
 import xx.diskmap.R
 import xx.diskmap.ThemeMode
@@ -158,9 +157,6 @@ fun noticeText(context: Context, notice: Notice): String {
     val tail = notice.bytes?.let { formatSize(context, it) } ?: notice.detail
     return if (tail.isNullOrBlank()) head else "$head: $tail"
 }
-
-/** The name a node is shown under: the root is named after its volume. */
-fun displayName(node: Node, rootLabel: String): String = if (node.parent == null) rootLabel else node.name
 
 // ---------- Dialog pieces ----------
 
