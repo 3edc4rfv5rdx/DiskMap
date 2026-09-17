@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: The delete dialog keeps its size when the trash switch is flipped
 - F: The colour marks beside list rows are twice as wide
 - F: An up-arrow button at the start of the path line goes one folder up
 - F: The path line starts with ~ instead of repeating the storage name the top bar already shows

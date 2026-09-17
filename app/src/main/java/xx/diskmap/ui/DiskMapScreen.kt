@@ -504,19 +504,24 @@ private fun DeleteDialog(
                     Spacer(Modifier.width(8.dp))
                     Switch(checked = toTrash, onCheckedChange = { toTrash = it }, enabled = !inTrash)
                 }
-                if (inTrash) {
-                    Text(
-                        stringResource(R.string.trash_permanent_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else if (!toTrash) {
-                    Text(
-                        stringResource(R.string.delete_permanent_warning),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
+                // Always there and always two lines tall, so the dialog keeps
+                // its size when the switch is flipped.
+                Text(
+                    text = stringResource(
+                        when {
+                            inTrash -> R.string.trash_permanent_hint
+                            toTrash -> R.string.trash_restorable_hint
+                            else -> R.string.delete_permanent_warning
+                        }
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (!inTrash && !toTrash) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    minLines = 2,
+                )
             }
         },
         confirmButton = {

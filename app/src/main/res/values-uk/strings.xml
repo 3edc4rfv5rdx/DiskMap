@@ -30,6 +30,7 @@
     <string name="delete">Видалити</string>
     <string name="cancel">Скасувати</string>
     <string name="to_trash">До кошика</string>
+    <string name="trash_restorable_hint">Можна буде відновити з кошика</string>
     <string name="trash_permanent_hint">З кошика видаляється назавжди</string>
     <string name="delete_permanent_warning">Буде видалено назавжди без можливості відновлення</string>
     <string name="moved_to_trash">Переміщено до кошика</string>
