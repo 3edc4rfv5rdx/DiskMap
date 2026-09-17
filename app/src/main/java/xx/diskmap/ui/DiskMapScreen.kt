@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
@@ -297,7 +298,7 @@ private fun ColumnScope.MapContent(
     onDelete: (Node) -> Unit,
 ) {
     val version = vm.treeVersion
-    Breadcrumbs(current, onOpen = vm::open)
+    Breadcrumbs(current, onOpen = vm::open, onUp = { vm.up() })
     Summary(vm, current)
 
     val chart = Modifier.weight(1f).fillMaxWidth()
@@ -348,33 +349,38 @@ private fun ColumnScope.MapContent(
 }
 
 @Composable
-private fun Breadcrumbs(current: Node, onOpen: (Node) -> Unit) {
+private fun Breadcrumbs(current: Node, onOpen: (Node) -> Unit, onUp: () -> Unit) {
     val chain = remember(current) { generateSequence(current) { it.parent }.toList().asReversed() }
     val state = rememberLazyListState()
     LaunchedEffect(chain.size) { state.scrollToItem(chain.lastIndex) }
-    LazyRow(
-        state = state,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        itemsIndexed(chain) { i, node ->
-            if (i > 0) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    Row(Modifier.fillMaxWidth().padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onUp, enabled = current.parent != null) {
+            Icon(Icons.Filled.ArrowUpward, stringResource(R.string.up))
+        }
+        LazyRow(
+            state = state,
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            itemsIndexed(chain) { i, node ->
+                if (i > 0) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                val last = i == chain.lastIndex
+                Text(
+                    text = if (node.parent == null) ROOT_CRUMB else node.name,
+                    fontWeight = if (last) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (last) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .clickable(enabled = !last) { onOpen(node) }
+                        .padding(horizontal = 4.dp, vertical = 8.dp),
                 )
             }
-            val last = i == chain.lastIndex
-            Text(
-                text = if (node.parent == null) ROOT_CRUMB else node.name,
-                fontWeight = if (last) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (last) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                modifier = Modifier
-                    .clickable(enabled = !last) { onOpen(node) }
-                    .padding(horizontal = 4.dp, vertical = 8.dp),
-            )
         }
     }
 }
