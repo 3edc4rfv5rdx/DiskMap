@@ -1,0 +1,136 @@
+package xx.diskmap.ui
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import xx.diskmap.Node
+import xx.diskmap.R
+import xx.diskmap.treemapCells
+
+/** Faded cells, when something else is selected. */
+private const val DIMMED_ALPHA = 0.35f
+
+/**
+ * The children of [folder] as rectangles sized by bytes: tap a folder to open
+ * it (or a file to select it), hold to select.
+ */
+@Composable
+fun Treemap(
+    folder: Node,
+    treeVersion: Int,
+    selected: Node?,
+    onOpen: (Node) -> Unit,
+    onSelect: (Node) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val colors = chartColors()
+    val outline = MaterialTheme.colorScheme.onSurface
+    val otherLabel = stringResource(R.string.other)
+    val measurer = rememberTextMeasurer()
+    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+    val cells = remember(folder, treeVersion, canvasSize) {
+        treemapCells(folder, canvasSize.width.toFloat(), canvasSize.height.toFloat())
+    }
+
+    Canvas(
+        modifier
+            .onSizeChanged { canvasSize = it }
+            .pointerInput(cells) {
+                fun nodeAt(p: Offset): Node? = cells.firstOrNull { it.contains(p.x, p.y) }?.node
+                detectTapGestures(
+                    onTap = { p ->
+                        val node = nodeAt(p) ?: return@detectTapGestures
+                        if (node.isDir) onOpen(node) else onSelect(node)
+                    },
+                    onLongPress = { p -> nodeAt(p)?.let(onSelect) },
+                )
+            }
+    ) {
+        val gap = 2.dp.toPx()
+        val pad = 6.dp.toPx()
+        val radius = CornerRadius(4.dp.toPx())
+        val hasSelection = selected != null && cells.any { it.node === selected }
+
+        for (cell in cells) {
+            val w = cell.right - cell.left - gap
+            val h = cell.bottom - cell.top - gap
+            if (w <= 0f || h <= 0f) continue
+            val topLeft = Offset(cell.left + gap / 2, cell.top + gap / 2)
+            val fill = colors.fill(cell.slot)
+            drawRoundRect(
+                color = fill,
+                topLeft = topLeft,
+                size = Size(w, h),
+                cornerRadius = radius,
+                alpha = if (!hasSelection || cell.node === selected) 1f else DIMMED_ALPHA,
+            )
+            if (cell.node != null && cell.node === selected) {
+                val stroke = 3.dp.toPx()
+                drawRoundRect(
+                    color = outline,
+                    topLeft = topLeft + Offset(stroke / 2, stroke / 2),
+                    size = Size(w - stroke, h - stroke),
+                    cornerRadius = radius,
+                    style = Stroke(width = stroke),
+                )
+            }
+
+            // Direct labels, where the cell is big enough to hold one.
+            val textWidth = (w - pad * 2).toInt()
+            if (textWidth < 24.dp.toPx() || h < 22.dp.toPx()) continue
+            val ink = if (fill.luminance() > 0.45f) Color.Black else Color.White
+            val name = cell.node?.name ?: otherLabel
+            val title = measurer.measure(
+                text = name,
+                style = TextStyle(
+                    color = ink,
+                    fontSize = 14.sp,
+                    fontWeight = if (cell.node?.isDir == true) FontWeight.SemiBold else FontWeight.Normal,
+                ),
+                constraints = Constraints(maxWidth = textWidth),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            val sizeText = measurer.measure(
+                text = formatSize(context, cell.size),
+                style = TextStyle(color = ink, fontSize = 12.sp),
+                constraints = Constraints(maxWidth = textWidth),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            clipRect(topLeft.x, topLeft.y, topLeft.x + w, topLeft.y + h) {
+                drawText(title, topLeft = topLeft + Offset(pad, pad / 2))
+                if (h > title.size.height + sizeText.size.height + pad) {
+                    drawText(sizeText, topLeft = topLeft + Offset(pad, pad / 2 + title.size.height))
+                }
+            }
+        }
+    }
+}
