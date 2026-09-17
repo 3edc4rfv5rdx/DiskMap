@@ -117,6 +117,9 @@ android {
         compose = true
         buildConfig = true
     }
+    lint {
+        lintConfig = file("lint.xml")
+    }
 }
 
 // ---------- 3. APK names the scripts can read ----------

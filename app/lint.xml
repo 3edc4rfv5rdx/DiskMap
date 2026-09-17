@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- ../updater and ../about are compiled into every app here and answer to
+         the lowest minSdk among them; their findings belong to those modules,
+         not to this app. -->
+    <issue id="all">
+        <ignore path="**/updater/android/**" />
+        <ignore path="**/about/android/**" />
+        <ignore regexp="(^|/)(updater|about)/android/src/" />
+    </issue>
+
+    <!-- The adaptive icon stays in mipmap-anydpi-v26: moving it to plain
+         anydpi broke resource linking of an incremental build. -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
+
+    <!-- Upgrading the toolchain is a decision made for all the projects at
+         once, not a warning to meet in each of them. -->
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+</lint>

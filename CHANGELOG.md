@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- I: Lint skips the shared updater and About modules, the newer-version checks and the v26 icon folder
 - R: The unused "close" string is gone
 - F: Backups and device transfers are ruled out through dataExtractionRules as well, which Android 12 and later read
 - N: Duplicates under the current folder, from the ⋮ menu: matched by size and content, with Keep one of each and a guard that leaves every group a copy

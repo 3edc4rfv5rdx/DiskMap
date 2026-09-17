@@ -8,9 +8,9 @@
 [![Release](https://img.shields.io/github/v/release/3edc4rfv5rdx/DiskMap)](https://github.com/3edc4rfv5rdx/DiskMap/releases/latest)
 
 DiskMap scans the phone's storage and shows every folder's size. There are four
-views: rings, tiles, a sorted list and the largest files. You can go into any
-folder and delete what is not needed, safely through the app's own trash or for
-good.
+views: rings, tiles, a sorted list and the largest files. It also finds duplicate
+files. You can go into any folder and delete what is not needed, safely through
+the app's own trash or for good.
 
 ## Features
 
@@ -44,7 +44,8 @@ good.
 - **Settings**: light/dark theme, accent colour, language (English, Русский,
   Українська) and an update check.
 - **Private**: no account, no ads, no analytics. The app goes online only to check its
-  own GitHub release for a newer version.
+  own GitHub release for a newer version, and its settings are left out of cloud
+  backups and device transfers.
 
 ## Install
 
@@ -62,6 +63,7 @@ measure folders or delete from them.
 
 ```bash
 ./00-MakeAll.sh     # signed release build, installed on the emulator and the phone
+./05-Lint.sh        # Android Lint; app/lint.xml leaves out the shared modules
 ./06-Test.sh        # unit tests
 ```
 
