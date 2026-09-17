@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+## v0.1.21 (2026-09-17)
 - I: The README describes the current features and names only the arm64 APK a release carries
 - F: The rings chart is two rings deep and larger, and the top bar, path line and bottom bar take less height
 - F: The trash moved to Documents/DiskMap/.Trash on each storage; an old .DiskMapTrash is moved there on the next scan
