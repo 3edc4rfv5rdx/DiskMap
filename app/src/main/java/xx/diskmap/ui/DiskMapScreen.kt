@@ -22,8 +22,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.SdStorage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -39,9 +41,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -72,6 +71,12 @@ import xx.diskmap.ViewMode
 
 private enum class Screen { MAP, TRASH, SETTINGS }
 
+private fun ViewMode.labelRes(): Int = when (this) {
+    ViewMode.RINGS -> R.string.view_rings
+    ViewMode.TILES -> R.string.view_tiles
+    ViewMode.LIST -> R.string.view_list
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiskMapScreen(onAbout: () -> Unit) {
@@ -81,6 +86,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     var screen by rememberSaveable { mutableStateOf(Screen.MAP) }
     var menuOpen by remember { mutableStateOf(false) }
     var volumeMenuOpen by remember { mutableStateOf(false) }
+    var viewMenuOpen by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<Node?>(null) }
     val snackbar = remember { SnackbarHostState() }
 
@@ -130,6 +136,27 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                     }
                 },
                 actions = {
+                    if (screen == Screen.MAP) {
+                        Box {
+                            IconButton(onClick = { viewMenuOpen = true }) {
+                                Icon(Icons.Outlined.BarChart, stringResource(R.string.chart_type))
+                            }
+                            DropdownMenu(expanded = viewMenuOpen, onDismissRequest = { viewMenuOpen = false }) {
+                                ViewMode.entries.forEach { mode ->
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(mode.labelRes())) },
+                                        trailingIcon = {
+                                            if (mode == viewMode) Icon(Icons.Filled.Check, contentDescription = null)
+                                        },
+                                        onClick = {
+                                            viewMenuOpen = false
+                                            AppSettings.setViewMode(context, mode)
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
                     if (screen == Screen.MAP && vm.volumes.size > 1) {
                         Box {
                             IconButton(onClick = { volumeMenuOpen = true }) {
@@ -269,30 +296,9 @@ private fun ColumnScope.MapContent(
     volumeLabel: String,
     onDelete: (Node) -> Unit,
 ) {
-    val context = LocalContext.current
     val version = vm.treeVersion
     Breadcrumbs(current, volumeLabel, onOpen = vm::open)
     Summary(vm, current)
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
-        val modes = ViewMode.entries
-        modes.forEachIndexed { i, mode ->
-            SegmentedButton(
-                selected = mode == viewMode,
-                onClick = { AppSettings.setViewMode(context, mode) },
-                shape = SegmentedButtonDefaults.itemShape(i, modes.size),
-            ) {
-                Text(
-                    stringResource(
-                        when (mode) {
-                            ViewMode.RINGS -> R.string.view_rings
-                            ViewMode.TILES -> R.string.view_tiles
-                            ViewMode.LIST -> R.string.view_list
-                        }
-                    )
-                )
-            }
-        }
-    }
 
     val chart = Modifier.weight(1f).fillMaxWidth()
     when (viewMode) {

@@ -13,6 +13,7 @@
     <string name="close">Close</string>
     <string name="storage">Storage</string>
     <string name="no_storage">No storage found</string>
+    <string name="chart_type">Chart type</string>
     <string name="view_rings">Rings</string>
     <string name="view_tiles">Tiles</string>
     <string name="view_list">List</string>

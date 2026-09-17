@@ -13,6 +13,7 @@
     <string name="close">Закрыть</string>
     <string name="storage">Хранилище</string>
     <string name="no_storage">Хранилище не найдено</string>
+    <string name="chart_type">Тип диаграммы</string>
     <string name="view_rings">Кольца</string>
     <string name="view_tiles">Плитки</string>
     <string name="view_list">Список</string>

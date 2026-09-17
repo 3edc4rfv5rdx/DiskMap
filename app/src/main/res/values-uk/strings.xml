@@ -13,6 +13,7 @@
     <string name="close">Закрити</string>
     <string name="storage">Сховище</string>
     <string name="no_storage">Сховище не знайдено</string>
+    <string name="chart_type">Тип діаграми</string>
     <string name="view_rings">Кільця</string>
     <string name="view_tiles">Плитки</string>
     <string name="view_list">Список</string>

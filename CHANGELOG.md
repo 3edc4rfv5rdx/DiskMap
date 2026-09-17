@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: The chart type is picked from a bar-chart button menu in the top bar instead of a button row above the chart
 - I: gradlew.bat is gone: the project is built on Linux only
 - N: Settings under the ⋮ menu: theme, accent colour, language and the start-up update check, as in the other apps
 - N: Deleting asks whether to move to the app's own trash or delete for good; the trash screen restores, deletes and empties
