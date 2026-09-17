@@ -247,7 +247,11 @@ fun DiskMapScreen(onAbout: () -> Unit) {
         DeleteDialog(
             node = target,
             inTrash = vm.isInTrash(target),
-            onDismiss = { deleteTarget = null },
+            // Backing out of the delete lets go of the item too.
+            onDismiss = {
+                deleteTarget = null
+                vm.select(null)
+            },
             onConfirm = { toTrash ->
                 deleteTarget = null
                 vm.delete(target, toTrash)

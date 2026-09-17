@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: Cancelling the delete dialog also clears the selection
 - F: Larger text in the bottom bar: the selected name, its size and the gesture hint
 - F: The bottom bar keeps one height, so the chart no longer jumps when an item is selected or let go
 - F: The delete dialog keeps its size when the trash switch is flipped
