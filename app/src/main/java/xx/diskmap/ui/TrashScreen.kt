@@ -1,6 +1,5 @@
 package xx.diskmap.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,15 +8,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -76,41 +79,40 @@ fun TrashScreen(
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f)) {
             items(entries, key = { it.id }) { entry ->
-                Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 16.dp, top = 10.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = entry.item.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(formatSize(context, entry.size), fontWeight = FontWeight.SemiBold)
+                        }
                         Text(
-                            text = entry.item.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
+                            text = entry.originalPath,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
                         )
-                        Text(formatSize(context, entry.size), fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = dateFormat.format(Date(entry.deletedAt)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                    Text(
-                        text = entry.originalPath,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                    EntryMenu(
+                        enabled = !busy,
+                        onRestore = { onRestore(entry) },
+                        onPurge = { purgeId = entry.id },
                     )
-                    Text(
-                        text = dateFormat.format(Date(entry.deletedAt)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Row(
-                        Modifier.fillMaxWidth().padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                    ) {
-                        TextButton(onClick = { purgeId = entry.id }, enabled = !busy) {
-                            Text(stringResource(R.string.delete_forever), color = MaterialTheme.colorScheme.error)
-                        }
-                        FilledTonalButton(onClick = { onRestore(entry) }, enabled = !busy) {
-                            Text(stringResource(R.string.restore))
-                        }
-                    }
                 }
                 HorizontalDivider()
             }
@@ -140,5 +142,32 @@ fun TrashScreen(
                 onEmpty()
             },
         )
+    }
+}
+
+/** The actions on one trash entry, behind its ⋮ button. */
+@Composable
+private fun EntryMenu(enabled: Boolean, onRestore: () -> Unit, onPurge: () -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }, enabled = enabled) {
+            Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options))
+        }
+        AppMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.restore)) },
+                onClick = {
+                    open = false
+                    onRestore()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.delete_forever), color = MaterialTheme.colorScheme.error) },
+                onClick = {
+                    open = false
+                    onPurge()
+                },
+            )
+        }
     }
 }

@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: Each trash entry keeps Restore and Delete forever behind a ⋮ button instead of two buttons under it
 - F: Drop-down menus stand out from the screen: a lighter, well-rounded card with an outline and a shadow
 - F: The trash opens from a bin button in the top bar; the storage is picked in Settings, and every launch opens the internal one
 - N: A file opens in its viewer app from its icon in the list, or from the eye button when it is the only one selected
