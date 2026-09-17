@@ -13,23 +13,27 @@ is not needed, safely through the app's own trash or for good.
 
 ## Features
 
-- **Rings**: a sunburst chart, two rings around the centre, with a colour-coded list
-  beneath it.
-- **Tiles**: a treemap in which each item's area is proportional to its size.
-- **List**: sorted by size, with a bar and a percentage for each item.
+- **Three views**, switched from the chart button in the top bar:
+  - **Rings**: a sunburst chart with two rings around the centre. Larger segments
+    show their size next to a dot, and a colour-coded list sits beneath the chart.
+  - **Tiles**: a treemap in which each item's area is proportional to its size.
+  - **List**: items sorted by size, each with a bar and a percentage.
 - **Navigation**:
   - tap a folder to open it;
-  - to go back up, tap the centre of the rings, tap any folder in the path line, or press Back;
-  - press and hold an item to select it; while anything is selected, a tap adds or
-    removes items, so several can be deleted at once.
+  - to go back up, use the up arrow or any folder in the path line, tap the centre
+    of the rings, or press Back.
+- **Selection**: press and hold an item to select it. While anything is selected, a
+  tap adds or removes items, so several can be deleted at once.
 - **View a file**: tap its icon in the list, or the eye button when one file is
-  selected; it opens in whatever app handles its type.
-- **Delete or trash**: a selected item gets three buttons: *Delete* (for good, after a
-  short confirmation), *Cancel* and *To trash*. The trash is `Documents/DiskMap/.Trash`
-  on the same storage, so the move is instant and can be undone from the trash screen,
-  opened by the bin button in the top bar.
-- **Internal storage and SD card**: pick one in Settings (shown when there is more
-  than one); every launch opens the internal storage.
+  selected. The file opens in whatever app handles its type.
+- **Delete or trash**: a selection gets three buttons: *Delete* (for good, after a
+  short confirmation), *Cancel* and *To trash*.
+- **Trash**: `Documents/DiskMap/.Trash` on the same storage, so moving an item there is
+  instant. Open the trash with the bin button in the top bar. Each entry's ⋮ menu
+  restores the item or deletes it for good, and one button empties the whole trash.
+- **Internal storage and SD card**: pick one in Settings; the choice appears only
+  when there is more than one. Every launch opens the internal storage.
+- **⋮ menu**: Rescan, Settings and About.
 - **Settings**: light/dark theme, accent colour, language (English, Русский,
   Українська) and an update check.
 - **Private**: no account, no ads, no analytics. The app goes online only to check its
@@ -39,11 +43,7 @@ is not needed, safely through the app's own trash or for good.
 
 Download the APK from the [latest release](https://github.com/3edc4rfv5rdx/DiskMap/releases/latest):
 
-| File | For |
-|---|---|
-| `diskmap-<version>-arm64-v8a.apk` | almost every modern phone |
-| `diskmap-<version>-x86_64.apk` | emulators |
-| `diskmap-<version>.apk` | any device (universal) |
+`diskmap-<version>-arm64-v8a.apk` runs on almost every modern phone.
 
 On first launch the app asks for **All files access**. Without it, the app cannot
 measure folders or delete from them.
