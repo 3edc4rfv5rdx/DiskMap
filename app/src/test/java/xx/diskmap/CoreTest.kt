@@ -211,6 +211,28 @@ class CoreTest {
     }
 
     @Test
+    fun trashLivesUnderDocuments() {
+        assertEquals(File(tmp.root, "Documents/DiskMap/.Trash"), Trash.dirFor(tmp.root))
+    }
+
+    @Test
+    fun migrateMovesTheOldTrashOnce() {
+        val volume = tmp.root
+        file(".DiskMapTrash/5/x", 4)
+        File(volume, ".DiskMapTrash/5.path").writeText(File(volume, "x").absolutePath)
+
+        Trash.migrate(volume)
+        assertFalse(File(volume, ".DiskMapTrash").exists())
+        assertEquals(4L, Trash.list(volume).single().size)
+
+        // A second old folder is left alone once the new one exists.
+        file(".DiskMapTrash/6/y", 1)
+        Trash.migrate(volume)
+        assertTrue(File(volume, ".DiskMapTrash/6/y").exists())
+        assertEquals(1, Trash.list(volume).size)
+    }
+
+    @Test
     fun failedMoveLeavesNothingBehind() {
         val volume = tmp.root
         assertFalse(Trash.moveToTrash(File(volume, "missing"), volume))

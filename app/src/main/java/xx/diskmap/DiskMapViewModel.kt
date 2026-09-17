@@ -109,6 +109,7 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
             }
             try {
                 val tree = withContext(Dispatchers.IO) {
+                    Trash.migrate(v.dir)
                     Scanner.scanTree(v.dir, progress) { ensureActive() }
                 }
                 root = tree
@@ -284,16 +285,28 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
      * is walked, and the sizes above it are adjusted by the difference.
      */
     private suspend fun syncPath(path: String) {
-        val file = File(path)
+        val tree = root ?: return
+        val existing = tree.find(path)
+        if (existing === tree) return
+        // What to walk: the node itself, or, for a path the tree has never seen,
+        // the topmost folder on the way that is new as well — the trash can
+        // bring Documents/DiskMap into being along with itself.
+        val target = if (existing != null) {
+            path
+        } else {
+            val anchor = tree.findNearest(path) ?: return
+            anchor.path + "/" + path.removePrefix(anchor.path + "/").substringBefore('/')
+        }
+        val file = File(target)
         val fresh = withContext(Dispatchers.IO) {
             if (FileOps.exists(file)) Scanner.scanChild(file) else null
         }
-        val tree = root ?: return
+        // A rescan that replaced the tree meanwhile already has the change.
+        if (root !== tree) return
         val currentPath = current?.path
-        val existing = tree.find(path)
+        val old = tree.find(target)
         when {
-            existing === tree -> return
-            existing != null -> existing.parent?.replaceChild(existing, fresh)
+            old != null -> old.parent?.replaceChild(old, fresh)
             fresh != null -> tree.find(file.parent ?: return)?.replaceChild(null, fresh)
             else -> return
         }

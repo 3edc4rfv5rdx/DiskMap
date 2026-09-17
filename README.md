@@ -24,11 +24,11 @@ is not needed, safely through the app's own trash or for good.
 - **View a file**: tap its icon in the list, or the eye button when one file is
   selected; it opens in whatever app handles its type.
 - **Delete or trash**: a selected item gets three buttons: *Delete* (for good, after a
-  short confirmation), *Cancel* and *To trash*. The trash is `.DiskMapTrash` on the
-  same storage, so the move is instant and can be undone from the trash screen,
+  short confirmation), *Cancel* and *To trash*. The trash is `Documents/DiskMap/.Trash`
+  on the same storage, so the move is instant and can be undone from the trash screen,
   opened by the bin button in the top bar.
-- **Internal storage and SD card**: pick one in Settings (shown when there is more than one); every launch opens
-  the internal storage.
+- **Internal storage and SD card**: pick one in Settings (shown when there is more
+  than one); every launch opens the internal storage.
 - **Settings**: light/dark theme, accent colour, language (English, Русский,
   Українська) and an update check.
 - **Private**: no account, no ads, no analytics. The app goes online only to check its

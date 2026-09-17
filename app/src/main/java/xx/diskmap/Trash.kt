@@ -6,17 +6,21 @@ import java.io.IOException
 /**
  * The app's own trash: Android has no system trash for arbitrary files.
  *
- * Each volume keeps one at its root, so moving an item in is a rename and
+ * Each volume keeps one of its own, so moving an item in is a rename and
  * costs no copy:
  *
- *   <volume>/.DiskMapTrash/<id>/<original name>   the item itself
- *   <volume>/.DiskMapTrash/<id>.path              the absolute path it came from
+ *   <volume>/Documents/DiskMap/.Trash/<id>/<original name>   the item itself
+ *   <volume>/Documents/DiskMap/.Trash/<id>.path              the path it came from
  *
  * The record lives beside the slot rather than inside it, so no name the item
  * could have collides with it.
  */
 object Trash {
-    const val DIR_NAME = ".DiskMapTrash"
+    /** Where the trash lives, relative to a volume's root. */
+    const val DIR_PATH = "Documents/DiskMap/.Trash"
+
+    /** Where it lived before, at the volume's root; see [migrate]. */
+    private const val LEGACY_DIR = ".DiskMapTrash"
     private const val RECORD_EXT = ".path"
 
     class Entry(
@@ -29,7 +33,20 @@ object Trash {
 
     enum class RestoreResult { OK, TARGET_EXISTS, FAILED }
 
-    fun dirFor(volumeRoot: File) = File(volumeRoot, DIR_NAME)
+    fun dirFor(volumeRoot: File) = File(volumeRoot, DIR_PATH)
+
+    /**
+     * Moves a trash left at the old place into the new one, once. Nothing
+     * happens when there is none, or when the new one already exists: the two
+     * are never merged, so the old folder then stays where it is.
+     */
+    fun migrate(volumeRoot: File) {
+        val legacy = File(volumeRoot, LEGACY_DIR)
+        val trash = dirFor(volumeRoot)
+        if (!FileOps.exists(legacy) || FileOps.exists(trash)) return
+        trash.parentFile?.mkdirs()
+        legacy.renameTo(trash)
+    }
 
     /** True for the trash folder itself and for anything inside it. */
     fun isInTrash(path: String, volumeRoot: File): Boolean {

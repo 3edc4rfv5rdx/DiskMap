@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: The trash moved to Documents/DiskMap/.Trash on each storage; an old .DiskMapTrash is moved there on the next scan
 - R: The chart dimming and outline, the file-count label and the ⋮ button are defined once in ui/Common.kt
 - F: Each trash entry keeps Restore and Delete forever behind a ⋮ button instead of two buttons under it
 - F: Drop-down menus stand out from the screen: a lighter, well-rounded card with an outline and a shadow
