@@ -29,7 +29,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.SdStorage
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -94,7 +94,6 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     val viewMode by AppSettings.viewMode.collectAsState()
     var screen by rememberSaveable { mutableStateOf(Screen.MAP) }
     var menuOpen by remember { mutableStateOf(false) }
-    var volumeMenuOpen by remember { mutableStateOf(false) }
     var viewMenuOpen by remember { mutableStateOf(false) }
     // What the delete-for-good question is about, while it is up.
     var deleteTargets by remember { mutableStateOf<List<Node>?>(null) }
@@ -167,23 +166,9 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                             }
                         }
                     }
-                    if (screen == Screen.MAP && vm.volumes.size > 1) {
-                        Box {
-                            IconButton(onClick = { volumeMenuOpen = true }) {
-                                Icon(Icons.Outlined.SdStorage, stringResource(R.string.storage))
-                            }
-                            DropdownMenu(expanded = volumeMenuOpen, onDismissRequest = { volumeMenuOpen = false }) {
-                                vm.volumes.forEach { v ->
-                                    DropdownMenuItem(
-                                        text = { Text(v.label) },
-                                        enabled = !vm.busy,
-                                        onClick = {
-                                            volumeMenuOpen = false
-                                            vm.selectVolume(v)
-                                        },
-                                    )
-                                }
-                            }
+                    if (screen == Screen.MAP) {
+                        IconButton(onClick = { screen = Screen.TRASH }) {
+                            Icon(Icons.Outlined.Delete, stringResource(R.string.trash))
                         }
                     }
                     Box {
@@ -198,13 +183,6 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                                     menuOpen = false
                                     screen = Screen.MAP
                                     vm.rescan()
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.trash)) },
-                                onClick = {
-                                    menuOpen = false
-                                    screen = Screen.TRASH
                                 },
                             )
                             DropdownMenuItem(
@@ -229,7 +207,14 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     ) { padding ->
         val body = Modifier.padding(padding).fillMaxSize()
         when (screen) {
-            Screen.SETTINGS -> SettingsScreen(body)
+            Screen.SETTINGS -> SettingsScreen(
+                volumes = vm.volumes,
+                volume = vm.volume,
+                // Switching mid-operation would pull the tree out from under it.
+                onVolume = { if (it !== vm.volume) vm.selectVolume(it) },
+                volumeLocked = vm.busy,
+                modifier = body,
+            )
             Screen.TRASH -> TrashScreen(
                 entries = vm.trashEntries,
                 busy = vm.busy || vm.scanning,

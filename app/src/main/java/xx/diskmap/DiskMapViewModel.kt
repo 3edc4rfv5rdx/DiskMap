@@ -36,6 +36,7 @@ private const val PROGRESS_POLL_MS = 200L
 
 class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     val volumes: List<Volume> = app.getSystemService(StorageManager::class.java).storageVolumes
+        .sortedByDescending { it.isPrimary }
         .mapNotNull { v -> v.directory?.let { Volume(it, v.getDescription(app)) } }
 
     var volume by mutableStateOf<Volume?>(null)
@@ -74,6 +75,7 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     private var scanJob: Job? = null
     private var scanGeneration = 0
 
+    /** Every launch opens the internal storage; a card is a visit, not a place to come back to. */
     fun start() {
         if (volume == null) volumes.firstOrNull()?.let { selectVolume(it) }
     }

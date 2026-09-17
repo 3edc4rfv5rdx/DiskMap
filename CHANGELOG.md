@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: The trash opens from a bin button in the top bar; the storage is picked in Settings, and every launch opens the internal one
 - N: A file opens in its viewer app from its icon in the list, or from the eye button when it is the only one selected
 - N: Ring segments show their size beside a dot in the middle of the arc, on a plate so it reads over the neighbours
 - F: Selected items stand out: a check, bold name and accent background in the list, a thicker outline in the charts

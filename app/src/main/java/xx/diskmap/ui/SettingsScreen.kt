@@ -31,16 +31,23 @@ import dev.updater.Updater
 import xx.diskmap.AppSettings
 import xx.diskmap.R
 import xx.diskmap.ThemeMode
+import xx.diskmap.Volume
 import xx.diskmap.currentLanguageTag
 import xx.diskmap.setLanguageTag
 import xx.diskmap.supportedLanguages
 
 /** Which editor is open; only one can be at a time. */
-private enum class Editing { NONE, THEME, ACCENT, LANGUAGE }
+private enum class Editing { NONE, STORAGE, THEME, ACCENT, LANGUAGE }
 
-/** Theme, accent colour, language, and the start-up update check. */
+/** Storage to scan, theme, accent colour, language, and the start-up update check. */
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    volumes: List<Volume>,
+    volume: Volume?,
+    onVolume: (Volume) -> Unit,
+    volumeLocked: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val themeMode by AppSettings.themeMode.collectAsState()
     val accentIndex by AppSettings.accentIndex.collectAsState()
@@ -59,6 +66,15 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        // Only a phone with a card or a USB drive in has anything to choose.
+        if (volumes.size > 1) {
+            SettingRow(
+                label = stringResource(R.string.storage),
+                value = volume?.label.orEmpty(),
+                onClick = { if (!volumeLocked) editing = Editing.STORAGE },
+            )
+            HorizontalDivider()
+        }
         SettingRow(
             label = stringResource(R.string.setting_theme),
             value = stringResource(themeMode.labelRes()),
@@ -107,6 +123,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 
     when (editing) {
+        Editing.STORAGE -> ChoiceDialog(
+            title = stringResource(R.string.storage),
+            options = volumes,
+            selected = volume,
+            label = { it.label },
+            onDismiss = { editing = Editing.NONE },
+            onPick = {
+                editing = Editing.NONE
+                onVolume(it)
+            },
+        )
+
         Editing.THEME -> ChoiceDialog(
             title = stringResource(R.string.setting_theme),
             options = ThemeMode.entries,
