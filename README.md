@@ -19,7 +19,8 @@ is not needed, safely through the app's own trash or for good.
 - **Navigation**:
   - tap a folder to open it;
   - to go back up, tap the centre of the rings, tap any folder in the path line, or press Back;
-  - press and hold an item to select it.
+  - press and hold an item to select it; while anything is selected, a tap adds or
+    removes items, so several can be deleted at once.
 - **Delete or trash**: a selected item gets three buttons: *Delete* (for good, after a
   short confirmation), *Cancel* and *To trash*. The trash is `.DiskMapTrash` on the
   same storage, so the move is instant and can be undone from the trash screen.

@@ -26,7 +26,7 @@
     <string name="empty_folder">Порожня тека</string>
     <string name="hint_open">Натискання відкриває теку</string>
     <string name="hint_select">утримання виділяє</string>
-    <string name="open">Відкрити</string>
+    <string name="selected_count">Вибрано</string>
     <string name="delete">Видалити</string>
     <string name="cancel">Скасувати</string>
     <string name="to_trash">До кошика</string>

@@ -93,3 +93,10 @@ class Node(
         }
     }
 }
+
+/**
+ * [nodes] without any that lie inside another of them: deleting a folder
+ * takes what is in it along, and must not be asked to delete that again.
+ */
+fun topmost(nodes: List<Node>): List<Node> =
+    nodes.filter { n -> nodes.none { it !== n && it.contains(n) } }

@@ -59,16 +59,16 @@ private class RingGeometry(size: Size) {
 }
 
 /**
- * Rings around [folder]: tap an arc to open its folder (or select a file),
- * hold to select, tap the hub to go up.
+ * Rings around [folder]: taps as in [tapItem], hold to select, tap the hub
+ * to go up.
  */
 @Composable
 fun Sunburst(
     folder: Node,
     treeVersion: Int,
-    selected: Node?,
+    selection: List<Node>,
     onOpen: (Node) -> Unit,
-    onSelect: (Node) -> Unit,
+    onToggle: (Node) -> Unit,
     onUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -79,9 +79,10 @@ fun Sunburst(
     val outline = MaterialTheme.colorScheme.onSurface
     val measurer = rememberTextMeasurer()
     val arcs = remember(folder, treeVersion) { sunburstArcs(folder) }
+    val selecting = selection.isNotEmpty()
 
     Canvas(
-        modifier.pointerInput(arcs) {
+        modifier.pointerInput(arcs, selecting) {
             fun arcAt(p: Offset): Pair<Int, SunburstArc?> {
                 val g = RingGeometry(Size(size.width.toFloat(), size.height.toFloat()))
                 val depth = g.depthAt(p)
@@ -93,26 +94,25 @@ fun Sunburst(
                     when {
                         depth == 0 -> onUp()
                         arc == null -> Unit
-                        arc.node.isDir -> onOpen(arc.node)
-                        else -> onSelect(arc.node)
+                        else -> tapItem(arc.node, selecting, onOpen, onToggle)
                     }
                 },
-                onLongPress = { p -> arcAt(p).second?.let { onSelect(it.node) } },
+                onLongPress = { p -> arcAt(p).second?.let { onToggle(it.node) } },
             )
         }
     ) {
         val g = RingGeometry(size)
         // A 2px surface gap between neighbours, as an angle at each ring's middle.
         val gapPx = 2.dp.toPx()
-        // The selection, when it is drawn here; everything outside it is faded.
-        val focus = selected?.takeIf { s -> arcs.any { it.node === s } }
+        // The part of the selection drawn here; everything outside it is faded.
+        val focus = selection.filter { s -> arcs.any { it.node === s } }
 
         for (arc in arcs) {
             val mid = g.hub + g.ring * (arc.depth - 0.5f)
             val gapDeg = (gapPx / mid * 180f / PI).toFloat()
             val sweep = arc.sweep - gapDeg
             if (sweep <= 0f) continue
-            val lit = focus == null || focus.contains(arc.node)
+            val lit = focus.isEmpty() || focus.any { it.contains(arc.node) }
             val color = colors.fill(arc.slot, arc.depth)
             val width = g.ring - gapPx
             drawArc(
@@ -125,7 +125,7 @@ fun Sunburst(
                 style = Stroke(width = width),
                 alpha = if (lit) 1f else DIMMED_ALPHA,
             )
-            if (arc.node === selected) {
+            if (selection.holds(arc.node)) {
                 val outerR = mid + width / 2
                 drawArc(
                     color = outline,
@@ -152,5 +152,6 @@ fun Sunburst(
             label,
             topLeft = Offset(g.center.x - label.size.width / 2, g.center.y - label.size.height / 2),
         )
+
     }
 }

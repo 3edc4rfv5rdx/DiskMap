@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- N: Several files and folders can be selected and deleted or trashed at once
 - F: A selected item gets Delete, Cancel and To trash buttons; only Delete asks first, and the trash switch dialog is gone
 - F: Cancelling the delete dialog also clears the selection
 - F: Larger text in the bottom bar: the selected name, its size and the gesture hint

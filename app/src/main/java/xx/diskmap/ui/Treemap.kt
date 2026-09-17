@@ -36,17 +36,14 @@ import xx.diskmap.treemapCells
 /** Faded cells, when something else is selected. */
 private const val DIMMED_ALPHA = 0.35f
 
-/**
- * The children of [folder] as rectangles sized by bytes: tap a folder to open
- * it (or a file to select it), hold to select.
- */
+/** The children of [folder] as rectangles sized by bytes; taps as in [tapItem], hold to select. */
 @Composable
 fun Treemap(
     folder: Node,
     treeVersion: Int,
-    selected: Node?,
+    selection: List<Node>,
     onOpen: (Node) -> Unit,
-    onSelect: (Node) -> Unit,
+    onToggle: (Node) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -54,6 +51,7 @@ fun Treemap(
     val outline = MaterialTheme.colorScheme.onSurface
     val otherLabel = stringResource(R.string.other)
     val measurer = rememberTextMeasurer()
+    val selecting = selection.isNotEmpty()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val cells = remember(folder, treeVersion, canvasSize) {
         treemapCells(folder, canvasSize.width.toFloat(), canvasSize.height.toFloat())
@@ -62,21 +60,21 @@ fun Treemap(
     Canvas(
         modifier
             .onSizeChanged { canvasSize = it }
-            .pointerInput(cells) {
+            .pointerInput(cells, selecting) {
                 fun nodeAt(p: Offset): Node? = cells.firstOrNull { it.contains(p.x, p.y) }?.node
                 detectTapGestures(
                     onTap = { p ->
                         val node = nodeAt(p) ?: return@detectTapGestures
-                        if (node.isDir) onOpen(node) else onSelect(node)
+                        tapItem(node, selecting, onOpen, onToggle)
                     },
-                    onLongPress = { p -> nodeAt(p)?.let(onSelect) },
+                    onLongPress = { p -> nodeAt(p)?.let(onToggle) },
                 )
             }
     ) {
         val gap = 2.dp.toPx()
         val pad = 6.dp.toPx()
         val radius = CornerRadius(4.dp.toPx())
-        val hasSelection = selected != null && cells.any { it.node === selected }
+        val hasSelection = cells.any { c -> c.node != null && selection.holds(c.node) }
 
         for (cell in cells) {
             val w = cell.right - cell.left - gap
@@ -84,14 +82,15 @@ fun Treemap(
             if (w <= 0f || h <= 0f) continue
             val topLeft = Offset(cell.left + gap / 2, cell.top + gap / 2)
             val fill = colors.fill(cell.slot)
+            val picked = cell.node != null && selection.holds(cell.node)
             drawRoundRect(
                 color = fill,
                 topLeft = topLeft,
                 size = Size(w, h),
                 cornerRadius = radius,
-                alpha = if (!hasSelection || cell.node === selected) 1f else DIMMED_ALPHA,
+                alpha = if (!hasSelection || picked) 1f else DIMMED_ALPHA,
             )
-            if (cell.node != null && cell.node === selected) {
+            if (picked) {
                 val stroke = 3.dp.toPx()
                 drawRoundRect(
                     color = outline,

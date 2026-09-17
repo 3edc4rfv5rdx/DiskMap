@@ -26,7 +26,7 @@
     <string name="empty_folder">Empty folder</string>
     <string name="hint_open">Tap a folder to open it</string>
     <string name="hint_select">hold to select</string>
-    <string name="open">Open</string>
+    <string name="selected_count">Selected</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="to_trash">To trash</string>

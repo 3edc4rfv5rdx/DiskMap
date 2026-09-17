@@ -71,6 +71,7 @@ import xx.diskmap.DiskMapViewModel
 import xx.diskmap.Node
 import xx.diskmap.R
 import xx.diskmap.ViewMode
+import xx.diskmap.topmost
 
 private enum class Screen { MAP, TRASH, SETTINGS }
 
@@ -93,7 +94,8 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     var menuOpen by remember { mutableStateOf(false) }
     var volumeMenuOpen by remember { mutableStateOf(false) }
     var viewMenuOpen by remember { mutableStateOf(false) }
-    var deleteTarget by remember { mutableStateOf<Node?>(null) }
+    // What the delete-for-good question is about, while it is up.
+    var deleteTargets by remember { mutableStateOf<List<Node>?>(null) }
     val snackbar = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) { vm.start() }
@@ -111,10 +113,10 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     val current = vm.current
     val volumeLabel = vm.volume?.label.orEmpty()
 
-    BackHandler(enabled = screen != Screen.MAP || vm.selected != null || current?.parent != null) {
+    BackHandler(enabled = screen != Screen.MAP || vm.selection.isNotEmpty() || current?.parent != null) {
         when {
             screen != Screen.MAP -> screen = Screen.MAP
-            vm.selected != null -> vm.select(null)
+            vm.selection.isNotEmpty() -> vm.clearSelection()
             else -> vm.up()
         }
     }
@@ -237,27 +239,28 @@ fun DiskMapScreen(onAbout: () -> Unit) {
             Screen.MAP -> MapBody(
                 vm = vm,
                 viewMode = viewMode,
-                onDelete = { deleteTarget = it },
+                onDelete = { deleteTargets = vm.selection },
                 modifier = body,
             )
         }
     }
 
     // Only deleting for good asks first: the trash can always be undone.
-    deleteTarget?.let { target ->
+    deleteTargets?.let { targets ->
+        val items = topmost(targets)
         ConfirmDialog(
             title = stringResource(R.string.delete_forever) + "?",
-            message = target.name + "  ·  " + formatSize(context, target.size) +
-                if (target.isDir) "  ·  " + stringResource(R.string.files) + ": " + formatCount(target.files) else "",
+            message = selectionTitle(items) + "  ·  " + formatSize(context, items.sumOf { it.size }) +
+                "  ·  " + stringResource(R.string.files) + ": " + formatCount(items.sumOf { it.files }),
             confirmText = stringResource(R.string.delete),
-            // Backing out of the delete lets go of the item too.
+            // Backing out of the delete lets go of the items too.
             onDismiss = {
-                deleteTarget = null
-                vm.select(null)
+                deleteTargets = null
+                vm.clearSelection()
             },
             onConfirm = {
-                deleteTarget = null
-                vm.delete(target, toTrash = false)
+                deleteTargets = null
+                vm.delete(targets, toTrash = false)
             },
         )
     }
@@ -267,7 +270,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
 private fun MapBody(
     vm: DiskMapViewModel,
     viewMode: ViewMode,
-    onDelete: (Node) -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier,
 ) {
     val context = LocalContext.current
@@ -304,7 +307,7 @@ private fun ColumnScope.MapContent(
     vm: DiskMapViewModel,
     current: Node,
     viewMode: ViewMode,
-    onDelete: (Node) -> Unit,
+    onDelete: () -> Unit,
 ) {
     val version = vm.treeVersion
     Breadcrumbs(current, onOpen = vm::open, onUp = { vm.up() })
@@ -317,15 +320,15 @@ private fun ColumnScope.MapContent(
                 Sunburst(
                     folder = current,
                     treeVersion = version,
-                    selected = vm.selected,
+                    selection = vm.selection,
                     onOpen = vm::open,
-                    onSelect = vm::select,
+                    onToggle = vm::toggle,
                     onUp = { vm.up() },
                     modifier = m.padding(12.dp),
                 )
             }
             val legend = @Composable { m: Modifier ->
-                NodeList(current, version, vm.selected, vm::open, vm::select, m)
+                NodeList(current, version, vm.selection, vm::open, vm::toggle, m)
             }
             // The rings draw into the largest circle that fits, so they
             // only need a share of the space; the legend takes the rest.
@@ -345,13 +348,13 @@ private fun ColumnScope.MapContent(
         ViewMode.TILES -> Treemap(
             folder = current,
             treeVersion = version,
-            selected = vm.selected,
+            selection = vm.selection,
             onOpen = vm::open,
-            onSelect = vm::select,
+            onToggle = vm::toggle,
             modifier = chart.padding(8.dp),
         )
 
-        ViewMode.LIST -> NodeList(current, version, vm.selected, vm::open, vm::select, chart)
+        ViewMode.LIST -> NodeList(current, version, vm.selection, vm::open, vm::toggle, chart)
     }
 
     SelectionBar(vm, current, onDelete)
@@ -429,8 +432,8 @@ private fun Summary(vm: DiskMapViewModel, current: Node) {
  * change size when something is selected or let go.
  */
 @Composable
-private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: (Node) -> Unit) {
-    val node = vm.selected
+private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: () -> Unit) {
+    val selecting = vm.selection.isNotEmpty()
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 2.dp,
@@ -439,10 +442,10 @@ private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: (Node) -
         Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
             // Laid out even with nothing selected, only invisible and inert then:
             // it is what gives the bar its height.
-            Column(Modifier.alpha(if (node == null) 0f else 1f)) {
-                SelectedItem(vm, node, current, onDelete)
+            Column(Modifier.alpha(if (selecting) 1f else 0f)) {
+                SelectedItems(vm, current, onDelete)
             }
-            if (node == null) {
+            if (!selecting) {
                 Text(
                     text = stringResource(R.string.hint_open) + "  ·  " + stringResource(R.string.hint_select),
                     style = MaterialTheme.typography.bodyLarge,
@@ -458,25 +461,34 @@ private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: (Node) -
 /** Three buttons share the bar's width; the stock side padding leaves their labels no room. */
 private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
 
+/** One item by its name, several by their count. */
+@Composable
+private fun selectionTitle(items: List<Node>): String = when (items.size) {
+    0 -> ""
+    1 -> items[0].name
+    else -> stringResource(R.string.selected_count) + ": " + items.size
+}
+
 /**
- * The selection's name and size, and three actions: delete for good, let go,
- * move to the trash. With [node] null, the same shape doing nothing.
+ * What is selected, its total size, and three actions: delete for good, let
+ * go, move to the trash. With nothing selected, the same shape doing nothing.
  */
 @Composable
-private fun SelectedItem(vm: DiskMapViewModel, node: Node?, current: Node, onDelete: (Node) -> Unit) {
+private fun SelectedItems(vm: DiskMapViewModel, current: Node, onDelete: () -> Unit) {
     val context = LocalContext.current
-    val enabled = node != null && vm.canDelete(node)
+    // A folder and something inside it are counted once.
+    val items = topmost(vm.selection)
+    val total = items.sumOf { it.size }
+    val enabled = vm.canDelete(items)
     Text(
-        text = node?.name.orEmpty(),
+        text = selectionTitle(items),
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.SemiBold,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )
     Text(
-        text = node?.let {
-            formatSize(context, it.size) + "  ·  " + formatPercent(it.size, current.size)
-        }.orEmpty(),
+        text = if (items.isEmpty()) "" else formatSize(context, total) + "  ·  " + formatPercent(total, current.size),
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -485,22 +497,22 @@ private fun SelectedItem(vm: DiskMapViewModel, node: Node?, current: Node, onDel
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         OutlinedButton(
-            onClick = { node?.let(onDelete) },
+            onClick = onDelete,
             enabled = enabled,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
             contentPadding = BAR_BUTTON_PADDING,
             modifier = Modifier.weight(1f),
         ) { Text(stringResource(R.string.delete), maxLines = 1) }
         FilledTonalButton(
-            onClick = { vm.select(null) },
-            enabled = node != null,
+            onClick = vm::clearSelection,
+            enabled = items.isNotEmpty(),
             contentPadding = BAR_BUTTON_PADDING,
             modifier = Modifier.weight(1f),
         ) { Text(stringResource(R.string.cancel), maxLines = 1) }
         // What is already in the trash can only go for good.
         Button(
-            onClick = { node?.let { vm.delete(it, toTrash = true) } },
-            enabled = node != null && vm.canDelete(node) && !vm.isInTrash(node),
+            onClick = { vm.delete(items, toTrash = true) },
+            enabled = enabled && !vm.anyInTrash(items),
             contentPadding = BAR_BUTTON_PADDING,
             modifier = Modifier.weight(1f),
         ) { Text(stringResource(R.string.to_trash), maxLines = 1) }

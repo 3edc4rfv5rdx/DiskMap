@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import xx.diskmap.ACCENT_COUNT
+import xx.diskmap.Node
 import xx.diskmap.Notice
 import xx.diskmap.R
 import xx.diskmap.ThemeMode
@@ -156,6 +157,19 @@ fun noticeText(context: Context, notice: Notice): String {
     val head = context.getString(notice.text)
     val tail = notice.bytes?.let { formatSize(context, it) } ?: notice.detail
     return if (tail.isNullOrBlank()) head else "$head: $tail"
+}
+
+// ---------- Selection ----------
+
+fun List<Node>.holds(node: Node): Boolean = any { it === node }
+
+/**
+ * What a plain tap on an item does, the same in every view: while anything is
+ * selected it adds or removes the item, otherwise a folder opens and a file is
+ * selected.
+ */
+fun tapItem(node: Node, selecting: Boolean, onOpen: (Node) -> Unit, onToggle: (Node) -> Unit) {
+    if (node.isDir && !selecting) onOpen(node) else onToggle(node)
 }
 
 // ---------- Dialog pieces ----------

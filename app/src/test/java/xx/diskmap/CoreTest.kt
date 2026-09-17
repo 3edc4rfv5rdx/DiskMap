@@ -103,6 +103,21 @@ class CoreTest {
     }
 
     @Test
+    fun topmostDropsWhatIsInsideAnotherPick() {
+        file("a/b/c", 1)
+        file("d", 1)
+        val root = Scanner.scanTree(tmp.root)
+        val a = root.children.first { it.name == "a" }
+        val b = a.children[0]
+        val c = b.children[0]
+        val d = root.children.first { it.name == "d" }
+
+        assertEquals(listOf(a, d), topmost(listOf(c, a, d, b)).sortedBy { it.name })
+        assertEquals(listOf(c), topmost(listOf(c)))
+        assertTrue(topmost(emptyList()).isEmpty())
+    }
+
+    @Test
     fun cancelCheckStopsTheScan() {
         file("a/b", 1)
         var calls = 0

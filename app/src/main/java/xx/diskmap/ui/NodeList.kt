@@ -39,17 +39,17 @@ import xx.diskmap.R
 import xx.diskmap.colorSlot
 
 /**
- * The children of [folder], largest first. Tap a folder to open it (or a file
- * to select it), hold to select. Under the rings it doubles as their legend:
+ * The children of [folder], largest first; taps as in [tapItem], hold to
+ * select. Under the rings it doubles as their legend:
  * each row wears its item's colour.
  */
 @Composable
 fun NodeList(
     folder: Node,
     treeVersion: Int,
-    selected: Node?,
+    selection: List<Node>,
     onOpen: (Node) -> Unit,
-    onSelect: (Node) -> Unit,
+    onToggle: (Node) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = chartColors()
@@ -68,9 +68,9 @@ fun NodeList(
                 size = node.size,
                 whole = folder.size,
                 color = colors.fill(colorSlot(i)),
-                selected = node === selected,
-                onClick = { if (node.isDir) onOpen(node) else onSelect(node) },
-                onLongClick = { onSelect(node) },
+                selected = selection.holds(node),
+                onClick = { tapItem(node, selection.isNotEmpty(), onOpen, onToggle) },
+                onLongClick = { onToggle(node) },
             )
         }
     }

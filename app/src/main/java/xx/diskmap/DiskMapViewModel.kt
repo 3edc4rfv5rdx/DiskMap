@@ -43,7 +43,8 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var current by mutableStateOf<Node?>(null)
         private set
-    var selected by mutableStateOf<Node?>(null)
+    /** Selected items, in the order they were picked; compared by identity. */
+    var selection by mutableStateOf<List<Node>>(emptyList())
         private set
 
     /** Bumped on every change inside the tree, which Compose cannot see on its own. */
@@ -81,7 +82,7 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
         volume = v
         root = null
         current = null
-        selected = null
+        selection = emptyList()
         rescan()
     }
 
@@ -109,7 +110,7 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 root = tree
                 current = keepPath?.let { tree.findNearest(it) } ?: tree
-                selected = null
+                selection = emptyList()
                 treeVersion++
             } catch (e: CancellationException) {
                 throw e
@@ -125,19 +126,24 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     fun open(node: Node) {
         if (!node.isDir) return
         current = node
-        selected = null
+        selection = emptyList()
     }
 
     /** One level up; false at the root, so the back press can leave the app. */
     fun up(): Boolean {
         val parent = current?.parent ?: return false
-        selected = null
+        selection = emptyList()
         current = parent
         return true
     }
 
-    fun select(node: Node?) {
-        selected = if (node === selected) null else node
+    /** Adds [node] to the selection, or takes it out if it is there. */
+    fun toggle(node: Node) {
+        selection = if (selection.any { it === node }) selection.filterNot { it === node } else selection + node
+    }
+
+    fun clearSelection() {
+        selection = emptyList()
     }
 
     fun noticeShown() {
@@ -150,24 +156,34 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Deleting the root itself is never offered: it is the whole volume. */
-    fun canDelete(node: Node): Boolean = node.parent != null && !busy && !scanning
+    fun canDelete(nodes: List<Node>): Boolean =
+        nodes.isNotEmpty() && nodes.all { it.parent != null } && !busy && !scanning
 
-    fun delete(node: Node, toTrash: Boolean) {
+    /** True when the trash cannot take [nodes]: some are in it already. */
+    fun anyInTrash(nodes: List<Node>): Boolean = nodes.any { isInTrash(it) }
+
+    /** Deletes [nodes] one by one, or moves them to the trash; a failure does not stop the rest. */
+    fun delete(nodes: List<Node>, toTrash: Boolean) {
         val v = volume ?: return
-        if (!canDelete(node)) return
-        val useTrash = toTrash && !isInTrash(node)
-        val path = node.path
-        val before = node.size
+        val targets = topmost(nodes)
+        if (!canDelete(targets)) return
+        val useTrash = toTrash && !anyInTrash(targets)
+        val paths = targets.map { it.path }
+        val before = targets.sumOf { it.size }
         runOperation {
-            val ok = withContext(Dispatchers.IO) {
-                if (useTrash) Trash.moveToTrash(File(path), v.dir) else FileOps.deleteTree(File(path))
+            var failed = 0
+            for (path in paths) {
+                val ok = withContext(Dispatchers.IO) {
+                    if (useTrash) Trash.moveToTrash(File(path), v.dir) else FileOps.deleteTree(File(path))
+                }
+                if (!ok) failed++
+                syncPath(path)
             }
-            syncPath(path)
             if (useTrash) syncPath(Trash.dirFor(v.dir).path)
-            val left = root?.find(path)?.size ?: 0L
+            val left = paths.sumOf { root?.find(it)?.size ?: 0L }
             notice = when {
-                !ok && left == before -> Notice(R.string.delete_failed)
-                !ok -> Notice(R.string.delete_partly, bytes = before - left)
+                failed > 0 && left == before -> Notice(R.string.delete_failed)
+                failed > 0 -> Notice(R.string.delete_partly, bytes = before - left)
                 useTrash -> Notice(R.string.moved_to_trash)
                 else -> Notice(R.string.freed, bytes = before)
             }
@@ -274,7 +290,7 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
         }
         // The folder on screen may have been inside the replaced subtree.
         current = currentPath?.let { tree.findNearest(it) } ?: tree
-        selected = null
+        selection = emptyList()
         treeVersion++
     }
 }
