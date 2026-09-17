@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- I: gradlew.bat is gone: the project is built on Linux only
 - N: Settings under the ⋮ menu: theme, accent colour, language and the start-up update check, as in the other apps
 - N: Deleting asks whether to move to the app's own trash or delete for good; the trash screen restores, deletes and empties
 - N: Folder sizes as rings, tiles or a sorted list, tapping into subfolders and back up through the path line
