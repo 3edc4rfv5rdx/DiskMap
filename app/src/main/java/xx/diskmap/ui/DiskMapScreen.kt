@@ -58,9 +58,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -414,49 +416,59 @@ private fun Summary(vm: DiskMapViewModel, current: Node) {
     }
 }
 
-/** What is selected and what can be done with it; a hint on the gestures otherwise. */
+/**
+ * What is selected and what can be done with it; a hint on the gestures otherwise.
+ * The bar is always as tall as with a selection, so the chart above it does not
+ * change size when something is selected or let go.
+ */
 @Composable
 private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: (Node) -> Unit) {
-    val context = LocalContext.current
     val node = vm.selected
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 2.dp,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
+            // Laid out even with nothing selected, only invisible and inert then:
+            // it is what gives the bar its height.
+            Column(Modifier.alpha(if (node == null) 0f else 1f)) {
+                SelectedItem(vm, node, current, onDelete)
+            }
             if (node == null) {
                 Text(
                     text = stringResource(R.string.hint_open) + "  ·  " + stringResource(R.string.hint_select),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 6.dp),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
                 )
-            } else {
-                SelectedItem(vm, node, current, onDelete)
             }
         }
     }
 }
 
+/** The selection's name, size and actions; with [node] null, the same shape doing nothing. */
 @Composable
-private fun SelectedItem(vm: DiskMapViewModel, node: Node, current: Node, onDelete: (Node) -> Unit) {
+private fun SelectedItem(vm: DiskMapViewModel, node: Node?, current: Node, onDelete: (Node) -> Unit) {
     val context = LocalContext.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(
-                text = node.name,
+                text = node?.name.orEmpty(),
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = formatSize(context, node.size) + "  ·  " + formatPercent(node.size, current.size),
+                text = node?.let {
+                    formatSize(context, it.size) + "  ·  " + formatPercent(it.size, current.size)
+                }.orEmpty(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        IconButton(onClick = { vm.select(null) }) {
+        IconButton(onClick = { vm.select(null) }, enabled = node != null) {
             Icon(Icons.Filled.Close, stringResource(R.string.close))
         }
     }
@@ -464,12 +476,12 @@ private fun SelectedItem(vm: DiskMapViewModel, node: Node, current: Node, onDele
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
     ) {
-        if (node.isDir) {
+        if (node?.isDir == true) {
             OutlinedButton(onClick = { vm.open(node) }) { Text(stringResource(R.string.open)) }
         }
         Button(
-            onClick = { onDelete(node) },
-            enabled = vm.canDelete(node),
+            onClick = { node?.let(onDelete) },
+            enabled = node != null && vm.canDelete(node),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError,
