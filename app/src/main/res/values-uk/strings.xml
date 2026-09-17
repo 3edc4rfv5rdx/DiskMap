@@ -17,6 +17,7 @@
     <string name="chart_type">Тип діаграми</string>
     <string name="view_rings">Кільця</string>
     <string name="view_tiles">Плитки</string>
+    <string name="view_largest">Найбільші файли</string>
     <string name="view_list">Список</string>
     <string name="scanning">Сканування</string>
     <string name="scan_failed">Сканування не вдалося</string>

@@ -113,6 +113,22 @@ class ChartLayoutTest {
     }
 
     @Test
+    fun largestFilesSearchesTheWholeSubtree() {
+        val root = dir(
+            "root",
+            leaf("a", 5),
+            dir("d", leaf("b", 50), dir("e", leaf("c", 30), leaf("tiny", 1))),
+            leaf("f", 40),
+        )
+        assertEquals(listOf("b", "f", "c"), largestFiles(root, 3).map { it.name })
+        assertEquals(listOf("b", "f", "c", "a", "tiny"), largestFiles(root, 10).map { it.name })
+        assertTrue(largestFiles(root, 0).isEmpty())
+        assertTrue(largestFiles(dir("empty")).isEmpty())
+        // A file on its own is its own largest file.
+        assertEquals(listOf("a"), largestFiles(leaf("a", 5)).map { it.name })
+    }
+
+    @Test
     fun sunburstHitFindsTheArc() {
         val root = dir("root", leaf("a", 3), leaf("b", 1))
         val arcs = sunburstArcs(root)

@@ -7,17 +7,20 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/3edc4rfv5rdx/DiskMap)](https://github.com/3edc4rfv5rdx/DiskMap/releases/latest)
 
-DiskMap scans the phone's storage and shows every folder's size. There are three
-views: rings, tiles and a sorted list. You can go into any folder and delete what
-is not needed, safely through the app's own trash or for good.
+DiskMap scans the phone's storage and shows every folder's size. There are four
+views: rings, tiles, a sorted list and the largest files. You can go into any
+folder and delete what is not needed, safely through the app's own trash or for
+good.
 
 ## Features
 
-- **Three views**, switched from the chart button in the top bar:
+- **Four views**, switched from the chart button in the top bar:
   - **Rings**: a sunburst chart with two rings around the centre. Larger segments
     show their size next to a dot, and a colour-coded list sits beneath the chart.
   - **Tiles**: a treemap in which each item's area is proportional to its size.
   - **List**: items sorted by size, each with a bar and a percentage.
+  - **Largest files**: the 25 largest files anywhere under the current folder, each
+    with the folder it sits in.
 - **Navigation**:
   - tap a folder to open it;
   - to go back up, use the up arrow or any folder in the path line, tap the centre

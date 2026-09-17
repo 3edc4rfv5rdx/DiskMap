@@ -87,6 +87,7 @@ private fun ViewMode.labelRes(): Int = when (this) {
     ViewMode.RINGS -> R.string.view_rings
     ViewMode.TILES -> R.string.view_tiles
     ViewMode.LIST -> R.string.view_list
+    ViewMode.LARGEST -> R.string.view_largest
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -345,6 +346,10 @@ private fun ColumnScope.MapContent(
         )
 
         ViewMode.LIST -> NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, chart)
+
+        ViewMode.LARGEST -> NodeList(
+            current, version, vm.selection, vm::open, vm::toggle, onView, chart, largest = true,
+        )
     }
 
     SelectionBar(vm, current, onDelete)

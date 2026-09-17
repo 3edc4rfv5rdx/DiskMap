@@ -17,6 +17,7 @@
     <string name="chart_type">Chart type</string>
     <string name="view_rings">Rings</string>
     <string name="view_tiles">Tiles</string>
+    <string name="view_largest">Largest files</string>
     <string name="view_list">List</string>
     <string name="scanning">Scanning</string>
     <string name="scan_failed">Scan failed</string>

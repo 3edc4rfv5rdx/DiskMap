@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- N: A fourth view lists the 25 largest files anywhere under the current folder, with the folder each sits in; it is not remembered, and the next launch opens the rings
 ## v0.1.21 (2026-09-17)
 - I: The README describes the current features and names only the arm64 APK a release carries
 - F: The rings chart is two rings deep and larger, and the top bar, path line and bottom bar take less height

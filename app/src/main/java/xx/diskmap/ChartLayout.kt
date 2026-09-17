@@ -1,5 +1,6 @@
 package xx.diskmap
 
+import java.util.PriorityQueue
 import kotlin.math.max
 import kotlin.math.min
 
@@ -160,3 +161,32 @@ fun sunburstArcs(center: Node): List<SunburstArc> {
 /** The arc in ring [depth] at [angle] degrees, if any. */
 fun sunburstHit(arcs: List<SunburstArc>, depth: Int, angle: Float): SunburstArc? =
     arcs.firstOrNull { it.depth == depth && angle >= it.start && angle < it.start + it.sweep }
+
+// ---------- Largest files ----------
+
+/** How many files the largest-files view lists. */
+const val LARGEST_LIMIT = 25
+
+/**
+ * The [limit] largest files anywhere under [folder], largest first. One pass
+ * over the tree with a heap that never holds more than [limit] files, and a
+ * stack instead of recursion, so a deep tree costs no call depth.
+ */
+fun largestFiles(folder: Node, limit: Int = LARGEST_LIMIT): List<Node> {
+    if (limit <= 0) return emptyList()
+    val heap = PriorityQueue<Node>(limit + 1, compareBy { it.size })
+    val stack = ArrayDeque<Node>()
+    stack.addLast(folder)
+    while (stack.isNotEmpty()) {
+        val node = stack.removeLast()
+        if (node.isDir) {
+            node.children.forEach { stack.addLast(it) }
+        } else if (heap.size < limit) {
+            heap.add(node)
+        } else if (node.size > heap.peek()!!.size) {
+            heap.poll()
+            heap.add(node)
+        }
+    }
+    return heap.sortedByDescending { it.size }
+}

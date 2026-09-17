@@ -13,7 +13,7 @@ import java.util.Locale
 /** Light/dark override; SYSTEM follows the device setting. */
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
-enum class ViewMode { RINGS, TILES, LIST }
+enum class ViewMode { RINGS, TILES, LIST, LARGEST }
 
 /** How many accents the palette offers; the colours themselves are in ui/Common.kt. */
 const val ACCENT_COUNT = 6
@@ -55,9 +55,14 @@ object AppSettings {
         prefs(context).edit { putInt(KEY_ACCENT, clamped) }
     }
 
+    /**
+     * The largest-files list is a look taken now and then, not a way to browse:
+     * it is not kept, and the next launch opens the rings instead.
+     */
     fun setViewMode(context: Context, mode: ViewMode) {
         _viewMode.value = mode
-        prefs(context).edit { putString(KEY_VIEW, mode.name) }
+        val kept = if (mode == ViewMode.LARGEST) ViewMode.RINGS else mode
+        prefs(context).edit { putString(KEY_VIEW, kept.name) }
     }
 
     private inline fun <reified T : Enum<T>> enumOr(name: String?, fallback: T): T =

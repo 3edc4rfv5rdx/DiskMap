@@ -39,14 +39,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import xx.diskmap.Node
+import xx.diskmap.LARGEST_LIMIT
 import xx.diskmap.R
 import xx.diskmap.colorSlot
+import xx.diskmap.largestFiles
 
 /**
  * The children of [folder], largest first; taps as in [tapItem], hold to
  * select. A file's icon is a button of its own that opens the file, even
  * while selecting. Under the rings it doubles as their legend:
  * each row wears its item's colour.
+ *
+ * With [largest], the [LARGEST_LIMIT] largest files anywhere under [folder]
+ * instead, each with the folder it sits in.
  */
 @Composable
 fun NodeList(
@@ -57,10 +62,13 @@ fun NodeList(
     onToggle: (Node) -> Unit,
     onView: (Node) -> Unit,
     modifier: Modifier = Modifier,
+    largest: Boolean = false,
 ) {
     val colors = chartColors()
     // Read so a change inside the tree recomposes the list.
-    val kids = remember(folder, treeVersion) { folder.children }
+    val kids = remember(folder, treeVersion, largest) {
+        if (largest) largestFiles(folder) else folder.children
+    }
     if (kids.isEmpty()) {
         Box(modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.empty_folder), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -68,9 +76,11 @@ fun NodeList(
         return
     }
     LazyColumn(modifier) {
-        itemsIndexed(kids, key = { _, n -> n.name }) { i, node ->
+        // Names repeat across folders, so the flat list is keyed by path.
+        itemsIndexed(kids, key = { _, n -> if (largest) n.path else n.name }) { i, node ->
             NodeRow(
                 node = node,
+                location = if (largest) locationIn(folder, node) else null,
                 size = node.size,
                 whole = folder.size,
                 color = colors.fill(colorSlot(i)),
@@ -83,10 +93,16 @@ fun NodeList(
     }
 }
 
+/** The folder [node] sits in, relative to [folder]; null when it is [folder] itself. */
+private fun locationIn(folder: Node, node: Node): String? =
+    node.parent?.path?.removePrefix(folder.path)?.removePrefix("/")?.takeIf { it.isNotEmpty() }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NodeRow(
     node: Node,
+    // A second line saying where the item is, for lists that mix folders.
+    location: String?,
     // Passed apart from the node: the same Node instance changes size in place,
     // and a skipped row would keep showing the old one.
     size: Long,
@@ -151,6 +167,16 @@ fun NodeRow(
                     text = formatSize(context, size),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
+                )
+            }
+            location?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    maxLines = 1,
+                    // The two ends of a path say the most: where it starts and the folder itself.
+                    overflow = TextOverflow.MiddleEllipsis,
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {

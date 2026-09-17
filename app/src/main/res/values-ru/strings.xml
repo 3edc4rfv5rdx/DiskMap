@@ -17,6 +17,7 @@
     <string name="chart_type">Тип диаграммы</string>
     <string name="view_rings">Кольца</string>
     <string name="view_tiles">Плитки</string>
+    <string name="view_largest">Крупные файлы</string>
     <string name="view_list">Список</string>
     <string name="scanning">Сканирование</string>
     <string name="scan_failed">Сканирование не удалось</string>
