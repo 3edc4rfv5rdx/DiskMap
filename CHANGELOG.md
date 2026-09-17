@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- N: Ring segments show their size beside a dot in the middle of the arc, on a plate so it reads over the neighbours
 - F: Selected items stand out: a check, bold name and accent background in the list, a thicker outline in the charts
 - N: Several files and folders can be selected and deleted or trashed at once
 - F: A selected item gets Delete, Cancel and To trash buttons; only Delete asks first, and the trash switch dialog is gone
