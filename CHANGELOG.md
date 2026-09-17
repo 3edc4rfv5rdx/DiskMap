@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- R: The chart dimming and outline, the file-count label and the ⋮ button are defined once in ui/Common.kt
 - F: Each trash entry keeps Restore and Delete forever behind a ⋮ button instead of two buttons under it
 - F: Drop-down menus stand out from the screen: a lighter, well-rounded card with an outline and a shadow
 - F: The trash opens from a bin button in the top bar; the storage is picked in Settings, and every launch opens the internal one

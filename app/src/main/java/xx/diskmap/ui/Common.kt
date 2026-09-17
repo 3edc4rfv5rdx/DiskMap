@@ -20,11 +20,15 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -165,6 +169,12 @@ fun noticeText(context: Context, notice: Notice): String {
 
 // ---------- Selection ----------
 
+/** How faint the other marks of a chart go while something in it is selected. */
+const val DIMMED_ALPHA = 0.25f
+
+/** The outline a chart draws around a selected mark. */
+val SELECTION_OUTLINE = 4.dp
+
 fun List<Node>.holds(node: Node): Boolean = any { it === node }
 
 /**
@@ -174,6 +184,18 @@ fun List<Node>.holds(node: Node): Boolean = any { it === node }
  */
 fun tapItem(node: Node, selecting: Boolean, onOpen: (Node) -> Unit, onToggle: (Node) -> Unit) {
     if (node.isDir && !selecting) onOpen(node) else onToggle(node)
+}
+
+/** "Files: N", the one way a file count is written. */
+@Composable
+fun filesLabel(count: Long): String = stringResource(R.string.files) + ": " + formatCount(count)
+
+/** The ⋮ button that opens an [AppMenu]. */
+@Composable
+fun MoreButton(onClick: () -> Unit, enabled: Boolean = true) {
+    IconButton(onClick = onClick, enabled = enabled) {
+        Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options))
+    }
 }
 
 // ---------- Dialog pieces ----------

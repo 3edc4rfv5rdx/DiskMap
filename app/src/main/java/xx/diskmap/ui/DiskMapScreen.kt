@@ -27,7 +27,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Visibility
@@ -171,9 +170,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                         }
                     }
                     Box {
-                        IconButton(onClick = { menuOpen = true }) {
-                            Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options))
-                        }
+                        MoreButton(onClick = { menuOpen = true })
                         AppMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.rescan)) },
@@ -237,7 +234,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
         ConfirmDialog(
             title = stringResource(R.string.delete_forever) + "?",
             message = selectionTitle(items) + "  ·  " + formatSize(context, items.sumOf { it.size }) +
-                "  ·  " + stringResource(R.string.files) + ": " + formatCount(items.sumOf { it.files }),
+                "  ·  " + filesLabel(items.sumOf { it.files }),
             confirmText = stringResource(R.string.delete),
             // Backing out of the delete lets go of the items too.
             onDismiss = {
@@ -273,7 +270,7 @@ private fun MapBody(
                         Spacer(Modifier.height(16.dp))
                         Text(stringResource(R.string.scanning))
                         Text(
-                            text = stringResource(R.string.files) + ": " + formatCount(vm.scannedFiles) +
+                            text = filesLabel(vm.scannedFiles) +
                                 "  ·  " + formatSize(context, vm.scannedBytes),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -397,7 +394,7 @@ private fun Summary(vm: DiskMapViewModel, current: Node) {
     ) {
         Text(
             text = formatSize(context, current.size) + "  ·  " +
-                stringResource(R.string.files) + ": " + formatCount(current.files),
+                filesLabel(current.files),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f),

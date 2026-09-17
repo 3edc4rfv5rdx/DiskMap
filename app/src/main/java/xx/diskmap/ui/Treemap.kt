@@ -33,9 +33,6 @@ import xx.diskmap.Node
 import xx.diskmap.R
 import xx.diskmap.treemapCells
 
-/** Faded cells, when something else is selected. */
-private const val DIMMED_ALPHA = 0.25f
-
 /** The children of [folder] as rectangles sized by bytes; taps as in [tapItem], hold to select. */
 @Composable
 fun Treemap(
@@ -91,7 +88,7 @@ fun Treemap(
                 alpha = if (!hasSelection || picked) 1f else DIMMED_ALPHA,
             )
             if (picked) {
-                val stroke = 4.dp.toPx()
+                val stroke = SELECTION_OUTLINE.toPx()
                 drawRoundRect(
                     color = outline,
                     topLeft = topLeft + Offset(stroke / 2, stroke / 2),

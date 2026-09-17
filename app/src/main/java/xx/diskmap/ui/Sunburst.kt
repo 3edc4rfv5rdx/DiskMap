@@ -43,9 +43,6 @@ private const val LABEL_MIN_SWEEP = 4f
 /** The shortest arc, at its middle, that still carries a label's dot clearly. */
 private val LABEL_MIN_ARC = 14.dp
 
-/** Faded arcs, when something else is selected. */
-private const val DIMMED_ALPHA = 0.25f
-
 private class RingGeometry(size: Size) {
     val center = Offset(size.width / 2, size.height / 2)
     val outer = min(size.width, size.height) / 2
@@ -119,13 +116,13 @@ fun Sunburst(
         val gapPx = 2.dp.toPx()
         // The part of the selection drawn here; everything outside it is faded.
         val focus = selection.filter { s -> arcs.any { it.node === s } }
+        fun alphaOf(node: Node) = if (focus.isEmpty() || focus.any { it.contains(node) }) 1f else DIMMED_ALPHA
 
         for (arc in arcs) {
             val mid = g.hub + g.ring * (arc.depth - 0.5f)
             val gapDeg = (gapPx / mid * 180f / PI).toFloat()
             val sweep = arc.sweep - gapDeg
             if (sweep <= 0f) continue
-            val lit = focus.isEmpty() || focus.any { it.contains(arc.node) }
             val color = colors.fill(arc.slot, arc.depth)
             val width = g.ring - gapPx
             drawArc(
@@ -136,7 +133,7 @@ fun Sunburst(
                 topLeft = Offset(g.center.x - mid, g.center.y - mid),
                 size = Size(mid * 2, mid * 2),
                 style = Stroke(width = width),
-                alpha = if (lit) 1f else DIMMED_ALPHA,
+                alpha = alphaOf(arc.node),
             )
             if (selection.holds(arc.node)) {
                 val outerR = mid + width / 2
@@ -147,7 +144,7 @@ fun Sunburst(
                     useCenter = false,
                     topLeft = Offset(g.center.x - outerR, g.center.y - outerR),
                     size = Size(outerR * 2, outerR * 2),
-                    style = Stroke(width = 4.dp.toPx()),
+                    style = Stroke(width = SELECTION_OUTLINE.toPx()),
                 )
             }
         }
@@ -201,7 +198,7 @@ fun Sunburst(
             placed.add(plate)
             placed.add(dot)
 
-            val alpha = if (focus.isEmpty() || focus.any { it.contains(arc.node) }) 1f else DIMMED_ALPHA
+            val alpha = alphaOf(arc.node)
             // Dark in the light theme, light in the dark one, like the number.
             drawCircle(labelColor, radius = dotR, center = Offset(cx, cy), alpha = alpha)
             drawRoundRect(
