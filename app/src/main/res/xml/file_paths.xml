@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Any file the app can see may be handed to a viewer: internal storage
+         and SD cards alike, so the whole tree rather than external-path. -->
+    <root-path name="root" path="/" />
+</paths>

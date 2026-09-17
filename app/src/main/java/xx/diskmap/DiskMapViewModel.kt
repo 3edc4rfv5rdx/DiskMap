@@ -1,5 +1,6 @@
 package xx.diskmap
 
+import android.app.Activity
 import android.app.Application
 import android.os.StatFs
 import android.os.storage.StorageManager
@@ -144,6 +145,12 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearSelection() {
         selection = emptyList()
+    }
+
+    /** Hands a file to the app that shows its type; says so when there is none. */
+    fun view(activity: Activity, node: Node) {
+        if (node.isDir) return
+        if (!FileViewer.open(activity, File(node.path))) notice = Notice(R.string.no_viewer)
     }
 
     fun noticeShown() {

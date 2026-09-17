@@ -26,6 +26,8 @@
     <string name="empty_folder">Пустая папка</string>
     <string name="hint_open">Нажатие открывает папку</string>
     <string name="hint_select">удержание выделяет</string>
+    <string name="view_file">Просмотр</string>
+    <string name="no_viewer">Нет приложения для этого файла</string>
     <string name="selected_count">Выбрано</string>
     <string name="delete">Удалить</string>
     <string name="cancel">Отмена</string>

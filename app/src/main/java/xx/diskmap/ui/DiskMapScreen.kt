@@ -1,6 +1,7 @@
 package xx.diskmap.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.SdStorage
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -310,6 +312,7 @@ private fun ColumnScope.MapContent(
     onDelete: () -> Unit,
 ) {
     val version = vm.treeVersion
+    val onView = fileViewer(vm)
     Breadcrumbs(current, onOpen = vm::open, onUp = { vm.up() })
     Summary(vm, current)
 
@@ -328,7 +331,7 @@ private fun ColumnScope.MapContent(
                 )
             }
             val legend = @Composable { m: Modifier ->
-                NodeList(current, version, vm.selection, vm::open, vm::toggle, m)
+                NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, m)
             }
             // The rings draw into the largest circle that fits, so they
             // only need a share of the space; the legend takes the rest.
@@ -354,7 +357,7 @@ private fun ColumnScope.MapContent(
             modifier = chart.padding(8.dp),
         )
 
-        ViewMode.LIST -> NodeList(current, version, vm.selection, vm::open, vm::toggle, chart)
+        ViewMode.LIST -> NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, chart)
     }
 
     SelectionBar(vm, current, onDelete)
@@ -461,6 +464,13 @@ private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: () -> Un
 /** Three buttons share the bar's width; the stock side padding leaves their labels no room. */
 private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
 
+/** Opens a file from this screen, so the viewer stacks on top of it. */
+@Composable
+private fun fileViewer(vm: DiskMapViewModel): (Node) -> Unit {
+    val activity = LocalActivity.current
+    return { node -> activity?.let { vm.view(it, node) } }
+}
+
 /** One item by its name, several by their count. */
 @Composable
 private fun selectionTitle(items: List<Node>): String = when (items.size) {
@@ -480,18 +490,33 @@ private fun SelectedItems(vm: DiskMapViewModel, current: Node, onDelete: () -> U
     val items = topmost(vm.selection)
     val total = items.sumOf { it.size }
     val enabled = vm.canDelete(items)
-    Text(
-        text = selectionTitle(items),
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
-    Text(
-        text = if (items.isEmpty()) "" else formatSize(context, total) + "  ·  " + formatPercent(total, current.size),
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    val onView = fileViewer(vm)
+    // One file can be looked at; the button keeps its place otherwise, so
+    // the bar does not change height.
+    val viewable = items.singleOrNull()?.takeUnless { it.isDir }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = selectionTitle(items),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = if (items.isEmpty()) "" else formatSize(context, total) + "  ·  " + formatPercent(total, current.size),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        IconButton(
+            onClick = { viewable?.let(onView) },
+            enabled = viewable != null,
+            modifier = Modifier.alpha(if (viewable != null) 1f else 0f),
+        ) {
+            Icon(Icons.Outlined.Visibility, stringResource(R.string.view_file))
+        }
+    }
     Row(
         Modifier.fillMaxWidth().padding(top = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
