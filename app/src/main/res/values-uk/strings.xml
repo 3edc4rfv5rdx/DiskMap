@@ -11,7 +11,6 @@
     <string name="about">Про програму</string>
     <string name="up">Вгору</string>
     <string name="back">Назад</string>
-    <string name="close">Закрити</string>
     <string name="storage">Сховище</string>
     <string name="no_storage">Сховище не знайдено</string>
     <string name="chart_type">Тип діаграми</string>

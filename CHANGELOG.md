@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- R: The unused "close" string is gone
 - F: Backups and device transfers are ruled out through dataExtractionRules as well, which Android 12 and later read
 - N: Duplicates under the current folder, from the ⋮ menu: matched by size and content, with Keep one of each and a guard that leaves every group a copy
 - N: A fourth view lists the 25 largest files anywhere under the current folder, with the folder each sits in; it is not remembered, and the next launch opens the rings

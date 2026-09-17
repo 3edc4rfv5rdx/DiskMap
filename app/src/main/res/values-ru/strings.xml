@@ -11,7 +11,6 @@
     <string name="about">О программе</string>
     <string name="up">Вверх</string>
     <string name="back">Назад</string>
-    <string name="close">Закрыть</string>
     <string name="storage">Хранилище</string>
     <string name="no_storage">Хранилище не найдено</string>
     <string name="chart_type">Тип диаграммы</string>
