@@ -33,7 +33,7 @@ import kotlin.math.min
 private const val HUB_FRACTION = 0.26f
 
 /** Faded arcs, when something else is selected. */
-private const val DIMMED_ALPHA = 0.35f
+private const val DIMMED_ALPHA = 0.25f
 
 private class RingGeometry(size: Size) {
     val center = Offset(size.width / 2, size.height / 2)
@@ -134,7 +134,7 @@ fun Sunburst(
                     useCenter = false,
                     topLeft = Offset(g.center.x - outerR, g.center.y - outerR),
                     size = Size(outerR * 2, outerR * 2),
-                    style = Stroke(width = 3.dp.toPx()),
+                    style = Stroke(width = 4.dp.toPx()),
                 )
             }
         }

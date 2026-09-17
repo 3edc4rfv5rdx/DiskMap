@@ -34,7 +34,7 @@ import xx.diskmap.R
 import xx.diskmap.treemapCells
 
 /** Faded cells, when something else is selected. */
-private const val DIMMED_ALPHA = 0.35f
+private const val DIMMED_ALPHA = 0.25f
 
 /** The children of [folder] as rectangles sized by bytes; taps as in [tapItem], hold to select. */
 @Composable
@@ -91,7 +91,7 @@ fun Treemap(
                 alpha = if (!hasSelection || picked) 1f else DIMMED_ALPHA,
             )
             if (picked) {
-                val stroke = 3.dp.toPx()
+                val stroke = 4.dp.toPx()
                 drawRoundRect(
                     color = outline,
                     topLeft = topLeft + Offset(stroke / 2, stroke / 2),
@@ -111,7 +111,11 @@ fun Treemap(
                 style = TextStyle(
                     color = ink,
                     fontSize = 14.sp,
-                    fontWeight = if (cell.node?.isDir == true) FontWeight.SemiBold else FontWeight.Normal,
+                    fontWeight = when {
+                        picked -> FontWeight.ExtraBold
+                        cell.node?.isDir == true -> FontWeight.SemiBold
+                        else -> FontWeight.Normal
+                    },
                 ),
                 constraints = Constraints(maxWidth = textWidth),
                 maxLines = 1,

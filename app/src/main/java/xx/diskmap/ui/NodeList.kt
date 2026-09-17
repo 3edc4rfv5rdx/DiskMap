@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.Icon
@@ -95,7 +96,7 @@ fun NodeRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (selected) scheme.secondaryContainer else Color.Transparent)
+            .background(if (selected) scheme.primaryContainer else Color.Transparent)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -107,10 +108,15 @@ fun NodeRow(
                 .height(36.dp)
                 .background(color, RoundedCornerShape(3.dp))
         )
+        // A selected row trades its type icon for a check.
         Icon(
-            imageVector = if (node.isDir) Icons.Outlined.Folder else Icons.Outlined.Description,
+            imageVector = when {
+                selected -> Icons.Filled.CheckCircle
+                node.isDir -> Icons.Outlined.Folder
+                else -> Icons.Outlined.Description
+            },
             contentDescription = null,
-            tint = scheme.onSurfaceVariant,
+            tint = if (selected) scheme.primary else scheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 10.dp).size(22.dp),
         )
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -118,7 +124,12 @@ fun NodeRow(
                 Text(
                     text = node.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (node.isDir) FontWeight.SemiBold else FontWeight.Normal,
+                    fontWeight = when {
+                        selected -> FontWeight.ExtraBold
+                        node.isDir -> FontWeight.SemiBold
+                        else -> FontWeight.Normal
+                    },
+                    color = if (selected) scheme.onPrimaryContainer else scheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
