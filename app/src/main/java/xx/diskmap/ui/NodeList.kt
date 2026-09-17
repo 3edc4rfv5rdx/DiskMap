@@ -126,7 +126,7 @@ fun NodeRow(
             tint = if (selected) scheme.primary else scheme.onSurfaceVariant,
             modifier = Modifier
                 .padding(horizontal = 2.dp)
-                .size(40.dp)
+                .size(COMPACT_BUTTON)
                 .clip(CircleShape)
                 .then(if (node.isDir) Modifier else Modifier.clickable(onClick = onView))
                 .padding(9.dp),

@@ -93,9 +93,11 @@ class ChartLayoutTest {
         assertEquals(2, y.depth)
         assertEquals(0f, y.start, 0.01f)
         assertEquals(0, y.slot)
-        val x = arcs.first { it.node.name == "x" }
-        assertEquals(3, x.depth)
-        assertEquals(180f, x.start, 0.01f)
+        val d2 = arcs.first { it.node.name == "d2" }
+        assertEquals(2, d2.depth)
+        assertEquals(180f, d2.start, 0.01f)
+        // Two rings: what lies deeper is not drawn.
+        assertTrue(arcs.none { it.node.name == "x" })
     }
 
     @Test

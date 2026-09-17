@@ -35,7 +35,7 @@ import kotlin.math.min
 import kotlin.math.sin
 
 /** The centre's share of the radius; the rings split the rest evenly. */
-private const val HUB_FRACTION = 0.26f
+private const val HUB_FRACTION = 0.3f
 
 /** Arcs narrower than this get no size label; measuring them would be wasted. */
 private const val LABEL_MIN_SWEEP = 4f

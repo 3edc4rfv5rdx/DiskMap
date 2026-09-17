@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -75,6 +76,10 @@ import xx.diskmap.topmost
 
 private enum class Screen { MAP, TRASH, SETTINGS }
 
+// Tighter than the Material default of 64dp: on a phone the chart needs every
+// line of height it can get.
+private val TOP_BAR_HEIGHT = 52.dp
+
 /** The storage root in the path line; the top bar already names the storage. */
 private const val ROOT_CRUMB = "~"
 
@@ -124,6 +129,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
+                expandedHeight = TOP_BAR_HEIGHT,
                 title = {
                     Text(
                         text = when (screen) {
@@ -308,14 +314,14 @@ private fun ColumnScope.MapContent(
                     onOpen = vm::open,
                     onToggle = vm::toggle,
                     onUp = { vm.up() },
-                    modifier = m.padding(12.dp),
+                    modifier = m.padding(4.dp),
                 )
             }
             val legend = @Composable { m: Modifier ->
                 NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, m)
             }
-            // The rings draw into the largest circle that fits, so they
-            // only need a share of the space; the legend takes the rest.
+            // The rings draw into the largest circle that fits; they get most
+            // of the height and the legend the rest.
             if (maxWidth > maxHeight) {
                 Row(Modifier.fillMaxSize()) {
                     rings(Modifier.weight(1f).fillMaxHeight())
@@ -323,7 +329,7 @@ private fun ColumnScope.MapContent(
                 }
             } else {
                 Column(Modifier.fillMaxSize()) {
-                    rings(Modifier.weight(1.3f).fillMaxWidth())
+                    rings(Modifier.weight(1.8f).fillMaxWidth())
                     legend(Modifier.weight(1f))
                 }
             }
@@ -350,7 +356,7 @@ private fun Breadcrumbs(current: Node, onOpen: (Node) -> Unit, onUp: () -> Unit)
     val state = rememberLazyListState()
     LaunchedEffect(chain.size) { state.scrollToItem(chain.lastIndex) }
     Row(Modifier.fillMaxWidth().padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onUp, enabled = current.parent != null) {
+        IconButton(onClick = onUp, enabled = current.parent != null, modifier = Modifier.size(COMPACT_BUTTON)) {
             Icon(Icons.Filled.ArrowUpward, stringResource(R.string.up))
         }
         LazyRow(
@@ -374,7 +380,7 @@ private fun Breadcrumbs(current: Node, onOpen: (Node) -> Unit, onUp: () -> Unit)
                     maxLines = 1,
                     modifier = Modifier
                         .clickable(enabled = !last) { onOpen(node) }
-                        .padding(horizontal = 4.dp, vertical = 8.dp),
+                        .padding(horizontal = 4.dp, vertical = 4.dp),
                 )
             }
         }
@@ -423,7 +429,7 @@ private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: () -> Un
         tonalElevation = 2.dp,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 4.dp)) {
             // Laid out even with nothing selected, only invisible and inert then:
             // it is what gives the bar its height.
             Column(Modifier.alpha(if (selecting) 1f else 0f)) {
@@ -443,7 +449,7 @@ private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: () -> Un
 }
 
 /** Three buttons share the bar's width; the stock side padding leaves their labels no room. */
-private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
 
 /** Opens a file from this screen, so the viewer stacks on top of it. */
 @Composable
@@ -493,13 +499,13 @@ private fun SelectedItems(vm: DiskMapViewModel, current: Node, onDelete: () -> U
         IconButton(
             onClick = { viewable?.let(onView) },
             enabled = viewable != null,
-            modifier = Modifier.alpha(if (viewable != null) 1f else 0f),
+            modifier = Modifier.size(COMPACT_BUTTON).alpha(if (viewable != null) 1f else 0f),
         ) {
             Icon(Icons.Outlined.Visibility, stringResource(R.string.view_file))
         }
     }
     Row(
-        Modifier.fillMaxWidth().padding(top = 8.dp),
+        Modifier.fillMaxWidth().padding(top = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         OutlinedButton(

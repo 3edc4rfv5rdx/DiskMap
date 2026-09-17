@@ -131,7 +131,7 @@ class SunburstArc(
 )
 
 /** Rings drawn around the centre. */
-const val SUNBURST_DEPTH = 3
+const val SUNBURST_DEPTH = 2
 
 /** Arcs narrower than this are not drawn: they could not be seen or tapped. */
 const val SUNBURST_MIN_SWEEP = 0.75f

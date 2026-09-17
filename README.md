@@ -13,7 +13,8 @@ is not needed, safely through the app's own trash or for good.
 
 ## Features
 
-- **Rings**: a sunburst chart three levels deep, with a colour-coded list beneath it.
+- **Rings**: a sunburst chart, two rings around the centre, with a colour-coded list
+  beneath it.
 - **Tiles**: a treemap in which each item's area is proportional to its size.
 - **List**: sorted by size, with a bar and a percentage for each item.
 - **Navigation**:

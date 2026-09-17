@@ -190,6 +190,9 @@ fun tapItem(node: Node, selecting: Boolean, onOpen: (Node) -> Unit, onToggle: (N
 @Composable
 fun filesLabel(count: Long): String = stringResource(R.string.files) + ": " + formatCount(count)
 
+/** An icon button smaller than Material's 48dp, for rows that must stay low. */
+val COMPACT_BUTTON = 40.dp
+
 /** The ⋮ button that opens an [AppMenu]. */
 @Composable
 fun MoreButton(onClick: () -> Unit, enabled: Boolean = true) {
