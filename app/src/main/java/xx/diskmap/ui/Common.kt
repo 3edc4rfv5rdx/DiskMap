@@ -2,12 +2,14 @@ package xx.diskmap.ui
 
 import android.content.Context
 import android.text.format.Formatter
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,10 +18,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -200,6 +204,28 @@ fun DialogDismissButton(text: String, onClick: () -> Unit) {
     FilledTonalButton(onClick = onClick, contentPadding = DIALOG_BUTTON_PADDING) {
         Text(text, maxLines = 1)
     }
+}
+
+/**
+ * Every drop-down menu in the app: a raised card with an outline, so it
+ * stands off the screen behind it in both themes.
+ */
+@Composable
+fun AppMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        shape = RoundedCornerShape(16.dp),
+        containerColor = scheme.surfaceContainerHighest,
+        shadowElevation = 12.dp,
+        border = BorderStroke(1.dp, scheme.outline),
+        content = content,
+    )
 }
 
 /** Yes/no for something that cannot be undone. */

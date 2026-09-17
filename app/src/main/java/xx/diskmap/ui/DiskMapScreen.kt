@@ -35,7 +35,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -150,7 +149,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                             IconButton(onClick = { viewMenuOpen = true }) {
                                 Icon(Icons.Outlined.BarChart, stringResource(R.string.chart_type))
                             }
-                            DropdownMenu(expanded = viewMenuOpen, onDismissRequest = { viewMenuOpen = false }) {
+                            AppMenu(expanded = viewMenuOpen, onDismissRequest = { viewMenuOpen = false }) {
                                 ViewMode.entries.forEach { mode ->
                                     DropdownMenuItem(
                                         text = { Text(stringResource(mode.labelRes())) },
@@ -175,7 +174,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                         IconButton(onClick = { menuOpen = true }) {
                             Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options))
                         }
-                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        AppMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.rescan)) },
                                 enabled = !vm.busy && vm.volume != null,
