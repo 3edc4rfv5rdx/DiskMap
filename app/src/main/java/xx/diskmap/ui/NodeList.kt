@@ -103,9 +103,9 @@ fun NodeRow(
         // The colour the item wears in the charts.
         Box(
             Modifier
-                .width(4.dp)
+                .width(8.dp)
                 .height(36.dp)
-                .background(color, RoundedCornerShape(2.dp))
+                .background(color, RoundedCornerShape(3.dp))
         )
         Icon(
             imageVector = if (node.isDir) Icons.Outlined.Folder else Icons.Outlined.Description,
