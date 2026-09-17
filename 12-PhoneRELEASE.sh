@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-
-
-exit
-
 #
 # Install the release build on the phone.
 #
