@@ -20,6 +20,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -161,10 +162,19 @@ fun formatCount(n: Long): String = NumberFormat.getIntegerInstance().format(n)
 fun formatPercent(part: Long, whole: Long): String =
     if (whole <= 0) "0%" else String.format(Locale.getDefault(), "%.1f%%", part * 100.0 / whole)
 
+/** "Label: value", the one way a label and its value are joined. */
+fun labelValue(label: String, value: Any): String = "$label: $value"
+
+@Composable
+fun labeled(@StringRes label: Int, value: Any): String = labelValue(stringResource(label), value)
+
+/** Parts of one line with the one separator between them; empty parts are left out. */
+fun dotted(vararg parts: String?): String = parts.filterNot { it.isNullOrEmpty() }.joinToString("  ·  ")
+
 fun noticeText(context: Context, notice: Notice): String {
     val head = context.getString(notice.text)
     val tail = notice.bytes?.let { formatSize(context, it) } ?: notice.detail
-    return if (tail.isNullOrBlank()) head else "$head: $tail"
+    return if (tail.isNullOrBlank()) head else labelValue(head, tail)
 }
 
 // ---------- Selection ----------
@@ -188,7 +198,7 @@ fun tapItem(node: Node, selecting: Boolean, onOpen: (Node) -> Unit, onToggle: (N
 
 /** "Files: N", the one way a file count is written. */
 @Composable
-fun filesLabel(count: Long): String = stringResource(R.string.files) + ": " + formatCount(count)
+fun filesLabel(count: Long): String = labeled(R.string.files, formatCount(count))
 
 /** An icon button smaller than Material's 48dp, for rows that must stay low. */
 val COMPACT_BUTTON = 40.dp

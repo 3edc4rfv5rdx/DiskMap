@@ -53,4 +53,13 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="language_system">System</string>
+    <string name="duplicates">Duplicates</string>
+    <string name="dup_searching">Looking for duplicates</string>
+    <string name="dup_read">Read</string>
+    <string name="dup_none">No duplicates found</string>
+    <string name="dup_groups">Groups</string>
+    <string name="dup_freeable">Can be freed</string>
+    <string name="keep_one">Keep one of each</string>
+    <string name="dup_hint">Tap a copy to pick it</string>
+    <string name="dup_keep_warning">Keep at least one copy of each</string>
 </resources>

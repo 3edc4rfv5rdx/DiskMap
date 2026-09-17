@@ -53,4 +53,13 @@
     <string name="theme_light">Світла</string>
     <string name="theme_dark">Темна</string>
     <string name="language_system">Системна</string>
+    <string name="duplicates">Дублікати</string>
+    <string name="dup_searching">Пошук дублікатів</string>
+    <string name="dup_read">Прочитано</string>
+    <string name="dup_none">Дублікатів не знайдено</string>
+    <string name="dup_groups">Груп</string>
+    <string name="dup_freeable">Можна звільнити</string>
+    <string name="keep_one">Залишити по одній</string>
+    <string name="dup_hint">Натискання виділяє копію</string>
+    <string name="dup_keep_warning">Залиште хоча б одну копію</string>
 </resources>

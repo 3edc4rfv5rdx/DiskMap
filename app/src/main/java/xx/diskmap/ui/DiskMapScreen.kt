@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,10 +14,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -27,13 +24,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,11 +34,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -59,11 +49,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,7 +62,7 @@ import xx.diskmap.R
 import xx.diskmap.ViewMode
 import xx.diskmap.topmost
 
-private enum class Screen { MAP, TRASH, SETTINGS }
+private enum class Screen { MAP, TRASH, DUPLICATES, SETTINGS }
 
 // Tighter than the Material default of 64dp: on a phone the chart needs every
 // line of height it can get.
@@ -106,8 +94,14 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     LaunchedEffect(Unit) { vm.start() }
     // The trash list lives in the view model; a recreated activity comes back
     // to this screen with it still open, or reloads it.
-    LaunchedEffect(screen) {
+    // Keyed on the tree's arrival as well: a screen restored before the scan
+    // ends has nothing to search yet.
+    LaunchedEffect(screen, vm.current == null) {
         if (screen == Screen.TRASH) vm.openTrash() else vm.closeTrash()
+        // A search belongs to its screen: leaving drops it, arriving starts one
+        // unless it is still there, as after the activity was recreated.
+        if (screen != Screen.DUPLICATES) vm.closeDuplicates()
+        else if (vm.dupScope == null) vm.findDuplicates()
     }
     LaunchedEffect(vm.notice) {
         val notice = vm.notice ?: return@LaunchedEffect
@@ -136,6 +130,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                         text = when (screen) {
                             Screen.MAP -> volumeLabel.ifEmpty { stringResource(R.string.app_name) }
                             Screen.TRASH -> stringResource(R.string.trash)
+                            Screen.DUPLICATES -> stringResource(R.string.duplicates)
                             Screen.SETTINGS -> stringResource(R.string.settings)
                         },
                         maxLines = 1,
@@ -189,6 +184,14 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                                 },
                             )
                             DropdownMenuItem(
+                                text = { Text(stringResource(R.string.duplicates)) },
+                                enabled = !vm.scanning && vm.current != null,
+                                onClick = {
+                                    menuOpen = false
+                                    screen = Screen.DUPLICATES
+                                },
+                            )
+                            DropdownMenuItem(
                                 text = { Text(stringResource(R.string.settings)) },
                                 onClick = {
                                     menuOpen = false
@@ -218,6 +221,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                 volumeLocked = vm.busy,
                 modifier = body,
             )
+            Screen.DUPLICATES -> DuplicatesScreen(vm, body)
             Screen.TRASH -> TrashScreen(
                 entries = vm.trashEntries,
                 busy = vm.busy || vm.scanning,
@@ -238,12 +242,12 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     // Only deleting for good asks first: the trash can always be undone.
     deleteTargets?.let { targets ->
         val items = topmost(targets)
-        ConfirmDialog(
-            title = stringResource(R.string.delete_forever) + "?",
-            message = selectionTitle(items) + "  ·  " + formatSize(context, items.sumOf { it.size }) +
-                "  ·  " + filesLabel(items.sumOf { it.files }),
-            confirmText = stringResource(R.string.delete),
-            // Backing out of the delete lets go of the items too.
+        DeleteForeverDialog(
+            summary = dotted(
+                pickedTitle(items.map { it.name }),
+                formatSize(context, items.sumOf { it.size }),
+                filesLabel(items.sumOf { it.files }),
+            ),
             onDismiss = {
                 deleteTargets = null
                 vm.clearSelection()
@@ -277,8 +281,7 @@ private fun MapBody(
                         Spacer(Modifier.height(16.dp))
                         Text(stringResource(R.string.scanning))
                         Text(
-                            text = filesLabel(vm.scannedFiles) +
-                                "  ·  " + formatSize(context, vm.scannedBytes),
+                            text = dotted(filesLabel(vm.scannedFiles), formatSize(context, vm.scannedBytes)),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -300,7 +303,8 @@ private fun ColumnScope.MapContent(
     onDelete: () -> Unit,
 ) {
     val version = vm.treeVersion
-    val onView = fileViewer(vm)
+    val viewer = fileViewer(vm)
+    val onView: (Node) -> Unit = { viewer(it.path) }
     Breadcrumbs(current, onOpen = vm::open, onUp = { vm.up() })
     Summary(vm, current)
 
@@ -404,16 +408,14 @@ private fun Summary(vm: DiskMapViewModel, current: Node) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = formatSize(context, current.size) + "  ·  " +
-                filesLabel(current.files),
+            text = dotted(formatSize(context, current.size), filesLabel(current.files)),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f),
         )
         space?.let { (free, total) ->
             Text(
-                text = stringResource(R.string.free) + ": " + formatSize(context, free) + " / " +
-                    formatSize(context, total),
+                text = labeled(R.string.free, formatSize(context, free) + " / " + formatSize(context, total)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -421,119 +423,37 @@ private fun Summary(vm: DiskMapViewModel, current: Node) {
     }
 }
 
-/**
- * What is selected and what can be done with it; a hint on the gestures otherwise.
- * The bar is always as tall as with a selection, so the chart above it does not
- * change size when something is selected or let go.
- */
+/** What is selected and what can be done with it; a hint on the gestures otherwise. */
 @Composable
 private fun SelectionBar(vm: DiskMapViewModel, current: Node, onDelete: () -> Unit) {
-    val selecting = vm.selection.isNotEmpty()
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 2.dp,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 4.dp)) {
-            // Laid out even with nothing selected, only invisible and inert then:
-            // it is what gives the bar its height.
-            Column(Modifier.alpha(if (selecting) 1f else 0f)) {
-                SelectedItems(vm, current, onDelete)
-            }
-            if (!selecting) {
-                Text(
-                    text = stringResource(R.string.hint_open) + "  ·  " + stringResource(R.string.hint_select),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
-                )
-            }
-        }
-    }
-}
-
-/** Three buttons share the bar's width; the stock side padding leaves their labels no room. */
-private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-
-/** Opens a file from this screen, so the viewer stacks on top of it. */
-@Composable
-private fun fileViewer(vm: DiskMapViewModel): (Node) -> Unit {
-    val activity = LocalActivity.current
-    return { node -> activity?.let { vm.view(it, node) } }
-}
-
-/** One item by its name, several by their count. */
-@Composable
-private fun selectionTitle(items: List<Node>): String = when (items.size) {
-    0 -> ""
-    1 -> items[0].name
-    else -> stringResource(R.string.selected_count) + ": " + items.size
-}
-
-/**
- * What is selected, its total size, and three actions: delete for good, let
- * go, move to the trash. With nothing selected, the same shape doing nothing.
- */
-@Composable
-private fun SelectedItems(vm: DiskMapViewModel, current: Node, onDelete: () -> Unit) {
     val context = LocalContext.current
     // A folder and something inside it are counted once.
     val items = topmost(vm.selection)
     val total = items.sumOf { it.size }
-    val enabled = vm.canDelete(items)
+    val canDelete = vm.canDelete(items)
     val onView = fileViewer(vm)
-    // One file can be looked at; the button keeps its place otherwise, so
-    // the bar does not change height.
+    // One file can be looked at.
     val viewable = items.singleOrNull()?.takeUnless { it.isDir }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = selectionTitle(items),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = if (items.isEmpty()) "" else formatSize(context, total) + "  ·  " + formatPercent(total, current.size),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(
-            onClick = { viewable?.let(onView) },
-            enabled = viewable != null,
-            modifier = Modifier.size(COMPACT_BUTTON).alpha(if (viewable != null) 1f else 0f),
-        ) {
-            Icon(Icons.Outlined.Visibility, stringResource(R.string.view_file))
-        }
-    }
-    Row(
-        Modifier.fillMaxWidth().padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        OutlinedButton(
-            onClick = onDelete,
-            enabled = enabled,
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            contentPadding = BAR_BUTTON_PADDING,
-            modifier = Modifier.weight(1f),
-        ) { Text(stringResource(R.string.delete), maxLines = 1) }
-        FilledTonalButton(
-            onClick = vm::clearSelection,
-            enabled = items.isNotEmpty(),
-            contentPadding = BAR_BUTTON_PADDING,
-            modifier = Modifier.weight(1f),
-        ) { Text(stringResource(R.string.cancel), maxLines = 1) }
+    ActionBar(
+        active = items.isNotEmpty(),
+        title = pickedTitle(items.map { it.name }),
+        detail = dotted(formatSize(context, total), formatPercent(total, current.size)),
+        hint = dotted(stringResource(R.string.hint_open), stringResource(R.string.hint_select)),
+        canDelete = canDelete,
         // What is already in the trash can only go for good.
-        Button(
-            onClick = { vm.delete(items, toTrash = true) },
-            enabled = enabled && !vm.anyInTrash(items),
-            contentPadding = BAR_BUTTON_PADDING,
-            modifier = Modifier.weight(1f),
-        ) { Text(stringResource(R.string.to_trash), maxLines = 1) }
-    }
+        canTrash = canDelete && !vm.anyInTrash(items),
+        onDelete = onDelete,
+        onCancel = vm::clearSelection,
+        onTrash = { vm.delete(items, toTrash = true) },
+        onView = viewable?.let { file -> { onView(file.path) } },
+    )
+}
+
+/** Opens a file from this screen, so the viewer stacks on top of it. */
+@Composable
+fun fileViewer(vm: DiskMapViewModel): (String) -> Unit {
+    val activity = LocalActivity.current
+    return { path -> activity?.let { vm.view(it, path) } }
 }
 
 /** Shown until all-files access is granted. */

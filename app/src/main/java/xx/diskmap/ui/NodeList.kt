@@ -94,7 +94,7 @@ fun NodeList(
 }
 
 /** The folder [node] sits in, relative to [folder]; null when it is [folder] itself. */
-private fun locationIn(folder: Node, node: Node): String? =
+fun locationIn(folder: Node, node: Node): String? =
     node.parent?.path?.removePrefix(folder.path)?.removePrefix("/")?.takeIf { it.isNotEmpty() }
 
 @OptIn(ExperimentalFoundationApi::class)

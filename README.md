@@ -36,7 +36,11 @@ good.
   restores the item or deletes it for good, and one button empties the whole trash.
 - **Internal storage and SD card**: pick one in Settings; the choice appears only
   when there is more than one. Every launch opens the internal storage.
-- **⋮ menu**: Rescan, Settings and About.
+- **Duplicates** (⋮ menu): files of 1 MB and more with the same content anywhere under
+  the current folder, found by size, then a hash of both ends, then a full hash.
+  *Keep one of each* picks every copy but the likely original: a name without
+  "(1)" or "copy", then the oldest. A group can never lose all its copies.
+- **⋮ menu**: Rescan, Duplicates, Settings and About.
 - **Settings**: light/dark theme, accent colour, language (English, Русский,
   Українська) and an update check.
 - **Private**: no account, no ads, no analytics. The app goes online only to check its

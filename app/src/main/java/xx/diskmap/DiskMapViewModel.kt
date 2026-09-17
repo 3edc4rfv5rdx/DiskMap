@@ -72,6 +72,25 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     var trashEntries by mutableStateOf<List<Trash.Entry>?>(null)
         private set
 
+    // ---------- Duplicates ----------
+
+    /** The folder the last duplicate search looked under. */
+    var dupScope by mutableStateOf<String?>(null)
+        private set
+    var dupSearching by mutableStateOf(false)
+        private set
+    var dupBytesRead by mutableLongStateOf(0L)
+        private set
+    /** Null until a search has finished. */
+    var dupGroups by mutableStateOf<List<Duplicates.Group>?>(null)
+        private set
+    /** Picked copies, by path: a search outlives the nodes it started from. */
+    var dupPicked by mutableStateOf<Set<String>>(emptySet())
+        private set
+
+    private var dupJob: Job? = null
+    private var dupGeneration = 0
+
     private var scanJob: Job? = null
     private var scanGeneration = 0
 
@@ -151,9 +170,8 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Hands a file to the app that shows its type; says so when there is none. */
-    fun view(activity: Activity, node: Node) {
-        if (node.isDir) return
-        if (!FileViewer.open(activity, File(node.path))) notice = Notice(R.string.no_viewer)
+    fun view(activity: Activity, path: String) {
+        if (!FileViewer.open(activity, File(path))) notice = Notice(R.string.no_viewer)
     }
 
     fun noticeShown() {
@@ -172,8 +190,11 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     /** True when the trash cannot take [nodes]: some are in it already. */
     fun anyInTrash(nodes: List<Node>): Boolean = nodes.any { isInTrash(it) }
 
-    /** Deletes [nodes] one by one, or moves them to the trash; a failure does not stop the rest. */
-    fun delete(nodes: List<Node>, toTrash: Boolean) {
+    /**
+     * Deletes [nodes] one by one, or moves them to the trash; a failure does not
+     * stop the rest. [onDone] runs on the main thread once the tree is updated.
+     */
+    fun delete(nodes: List<Node>, toTrash: Boolean, onDone: () -> Unit = {}) {
         val v = volume ?: return
         val targets = topmost(nodes)
         if (!canDelete(targets)) return
@@ -197,6 +218,7 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
                 useTrash -> Notice(R.string.moved_to_trash)
                 else -> Notice(R.string.freed, bytes = before)
             }
+            onDone()
         }
     }
 
@@ -259,6 +281,82 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
     private suspend fun reloadTrashNow() {
         val v = volume ?: return
         trashEntries = withContext(Dispatchers.IO) { Trash.list(v.dir) }
+    }
+
+    /** Looks for duplicates under the folder on screen, the trash left out. */
+    fun findDuplicates() {
+        val folder = current ?: return
+        val v = volume ?: return
+        dupJob?.cancel()
+        val generation = ++dupGeneration
+        dupScope = folder.path
+        dupGroups = null
+        dupPicked = emptySet()
+        dupBytesRead = 0L
+        dupSearching = true
+        // Walked here, on the main thread, where the tree is safe to read.
+        val candidates = Duplicates.candidates(folder, skip = { Trash.isInTrash(it.path, v.dir) })
+        dupJob = viewModelScope.launch {
+            val progress = Duplicates.Progress()
+            val ticker = launch {
+                while (true) {
+                    dupBytesRead = progress.bytes.get()
+                    delay(PROGRESS_POLL_MS)
+                }
+            }
+            try {
+                dupGroups = withContext(Dispatchers.IO) {
+                    Duplicates.confirm(candidates, progress) { ensureActive() }
+                }
+            } finally {
+                ticker.cancel()
+                // A search started meanwhile owns the flag now.
+                if (generation == dupGeneration) dupSearching = false
+            }
+        }
+    }
+
+    fun closeDuplicates() {
+        dupJob?.cancel()
+        dupGeneration++
+        dupSearching = false
+        dupGroups = null
+        dupPicked = emptySet()
+        dupScope = null
+    }
+
+    fun toggleDuplicate(path: String) {
+        dupPicked = if (path in dupPicked) dupPicked - path else dupPicked + path
+    }
+
+    fun clearDuplicates() {
+        dupPicked = emptySet()
+    }
+
+    /** Picks every copy but the likely original in each group. */
+    fun pickAllButOne() {
+        dupPicked = dupGroups.orEmpty().flatMap { g ->
+            val keep = Duplicates.keeper(g)
+            g.copies.filter { it !== keep }.map { it.path }
+        }.toSet()
+    }
+
+    /** True when some group would lose every copy: that is never allowed. */
+    fun wouldWipeAGroup(): Boolean =
+        dupGroups.orEmpty().any { g -> g.copies.all { it.path in dupPicked } }
+
+    fun deleteDuplicates(toTrash: Boolean) {
+        val tree = root ?: return
+        if (wouldWipeAGroup()) return
+        val nodes = dupPicked.mapNotNull { tree.find(it) }
+        delete(nodes, toTrash) {
+            // Whatever is gone leaves its group; a group of one is no longer one.
+            dupGroups = dupGroups?.mapNotNull { g ->
+                val left = g.copies.filter { FileOps.exists(File(it.path)) }
+                if (left.size > 1) Duplicates.Group(g.size, left) else null
+            }
+            dupPicked = emptySet()
+        }
     }
 
     // ---------- Tree upkeep ----------

@@ -22,3 +22,6 @@ NextRun.todo
 
 # 19-LinkOut.sh puts the build here under its own name.
 /OUT
+
+# Kotlin compiler daemon state.
+/.kotlin
