@@ -210,6 +210,9 @@ fun tapItem(node: Node, selecting: Boolean, onOpen: (Node) -> Unit, onToggle: (N
 @Composable
 fun filesLabel(count: Long): String = labeled(R.string.files, formatCount(count))
 
+/** The frame around a folder's size on the rings and the tiles, which tells it from a file. */
+val FOLDER_FRAME = 1.dp
+
 /** An icon button smaller than Material's 48dp, for rows that must stay low. */
 val COMPACT_BUTTON = 40.dp
 

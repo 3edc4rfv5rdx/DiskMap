@@ -70,6 +70,7 @@ fun Treemap(
         val gap = 2.dp.toPx()
         val pad = 6.dp.toPx()
         val radius = CornerRadius(4.dp.toPx())
+        val framePadX = 4.dp.toPx()
         val hasSelection = cells.any { c -> c.node != null && selection.holds(c.node) }
 
         for (cell in cells) {
@@ -119,17 +120,32 @@ fun Treemap(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            // A folder's size is framed, a file's is not; the frame takes its
+            // inset out of the text's width.
+            val folder = cell.node?.isDir == true
+            val frameInset = if (folder) framePadX else 0f
             val sizeText = measurer.measure(
                 text = formatSize(context, cell.size),
                 style = TextStyle(color = ink, fontSize = 12.sp),
-                constraints = Constraints(maxWidth = textWidth),
+                constraints = Constraints(maxWidth = (textWidth - frameInset * 2).toInt().coerceAtLeast(0)),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             clipRect(topLeft.x, topLeft.y, topLeft.x + w, topLeft.y + h) {
                 drawText(title, topLeft = topLeft + Offset(pad, pad / 2))
                 if (h > title.size.height + sizeText.size.height + pad) {
-                    drawText(sizeText, topLeft = topLeft + Offset(pad, pad / 2 + title.size.height))
+                    val sizeAt = topLeft + Offset(pad + frameInset, pad / 2 + title.size.height)
+                    drawText(sizeText, topLeft = sizeAt)
+                    if (folder) {
+                        val frameHeight = sizeText.size.height.toFloat()
+                        drawRoundRect(
+                            color = ink,
+                            topLeft = sizeAt - Offset(frameInset, 0f),
+                            size = Size(sizeText.size.width + frameInset * 2, frameHeight),
+                            cornerRadius = CornerRadius(frameHeight / 2),
+                            style = Stroke(width = FOLDER_FRAME.toPx()),
+                        )
+                    }
                 }
             }
         }

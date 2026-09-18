@@ -136,14 +136,16 @@ fun Sunburst(
                 alpha = alphaOf(arc.node),
             )
             if (selection.holds(arc.node)) {
-                val outerR = mid + width / 2
+                // Along the outer edge for a folder, through the middle for a
+                // file, so a picked arc also says which of the two it is.
+                val lineR = if (arc.node.isDir) mid + width / 2 else mid
                 drawArc(
                     color = outline,
                     startAngle = arc.start - 90f + gapDeg / 2,
                     sweepAngle = sweep,
                     useCenter = false,
-                    topLeft = Offset(g.center.x - outerR, g.center.y - outerR),
-                    size = Size(outerR * 2, outerR * 2),
+                    topLeft = Offset(g.center.x - lineR, g.center.y - lineR),
+                    size = Size(lineR * 2, lineR * 2),
                     style = Stroke(width = SELECTION_OUTLINE.toPx()),
                 )
             }
@@ -208,6 +210,17 @@ fun Sunburst(
                 cornerRadius = CornerRadius(th / 2),
                 alpha = 0.8f * alpha,
             )
+            // A folder's size is framed, a file's is not.
+            if (arc.node.isDir) {
+                drawRoundRect(
+                    color = labelColor,
+                    topLeft = plate.topLeft,
+                    size = plate.size,
+                    cornerRadius = CornerRadius(th / 2),
+                    style = Stroke(width = FOLDER_FRAME.toPx()),
+                    alpha = alpha,
+                )
+            }
             drawText(sizeLabel, topLeft = Offset(textLeft, cy - th / 2), alpha = alpha)
         }
     }
