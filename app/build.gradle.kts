@@ -48,9 +48,10 @@ android {
 
     defaultConfig {
         applicationId = "xx.diskmap"
-        // 33 for the per-app language through LocaleManager, as in Steps; all-files
-        // access, which the app cannot work without, needs 30.
-        minSdk = 33
+        // 30 for all-files access, which the app cannot work without, and for
+        // StorageVolume.directory; a TV box on Android 11 installs it. The
+        // per-app language needs 33 and branches below it (localizedContext).
+        minSdk = 30
         targetSdk = 36
         versionCode = releaseVersionCode
         versionName = releaseVersionName

@@ -1,8 +1,12 @@
 package xx.diskmap
 
+import android.app.Activity
 import android.app.LocaleManager
 import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.content.res.XmlResourceParser
+import android.os.Build
 import android.os.LocaleList
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +31,7 @@ object AppSettings {
     private const val KEY_THEME = "theme_mode"
     private const val KEY_ACCENT = "accent_index"
     private const val KEY_VIEW = "view_mode"
+    private const val KEY_LANGUAGE = "language"
 
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
@@ -63,6 +68,17 @@ object AppSettings {
         _viewMode.value = mode
         val kept = if (mode == ViewMode.LARGEST) ViewMode.RINGS else mode
         prefs(context).edit { putString(KEY_VIEW, kept.name) }
+    }
+
+    /**
+     * The per-app language below API 33, where the platform does not keep one.
+     * Read straight from the file: it is needed while the activity attaches,
+     * before [load].
+     */
+    fun languageTag(context: Context): String = prefs(context).getString(KEY_LANGUAGE, null).orEmpty()
+
+    fun setLanguageTag(context: Context, tag: String) {
+        prefs(context).edit { putString(KEY_LANGUAGE, tag) }
     }
 
     private inline fun <reified T : Enum<T>> enumOr(name: String?, fallback: T): T =
@@ -103,17 +119,51 @@ fun supportedLanguages(context: Context, systemLabel: String): List<LanguageOpti
 
 private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
 
-/** The per-app language the platform holds; empty for "follow the device". */
+/**
+ * The per-app language; empty for "follow the device". The platform holds it
+ * from API 33, [AppSettings] below that.
+ */
 fun currentLanguageTag(context: Context): String =
-    context.getSystemService(LocaleManager::class.java)
-        .applicationLocales
-        .takeUnless { it.isEmpty }
-        ?.get(0)
-        ?.toLanguageTag()
-        .orEmpty()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        context.getSystemService(LocaleManager::class.java)
+            .applicationLocales
+            .takeUnless { it.isEmpty }
+            ?.get(0)
+            ?.toLanguageTag()
+            .orEmpty()
+    } else {
+        AppSettings.languageTag(context)
+    }
 
-/** The system persists the choice and recreates the activity. */
-fun setLanguageTag(context: Context, tag: String) {
-    context.getSystemService(LocaleManager::class.java).applicationLocales =
-        if (tag.isEmpty()) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
+/**
+ * From API 33 the system persists the choice and recreates the activity;
+ * below that the app does both, and [localizedContext] applies it.
+ */
+fun setLanguageTag(activity: Activity, tag: String) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        activity.getSystemService(LocaleManager::class.java).applicationLocales =
+            if (tag.isEmpty()) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
+    } else {
+        AppSettings.setLanguageTag(activity, tag)
+        activity.recreate()
+    }
+}
+
+/**
+ * The activity's base context in the chosen language, below API 33; from 33
+ * the platform does this itself and [base] comes back as it is.
+ */
+fun localizedContext(base: Context): Context {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return base
+    val tag = AppSettings.languageTag(base)
+    val locale = if (tag.isEmpty()) Resources.getSystem().configuration.locales[0] else Locale.forLanguageTag(tag)
+    // The shared About and updater modules pick their strings by the default
+    // locale; set back to the device's too, so "follow the device" undoes an
+    // earlier choice without a restart.
+    Locale.setDefault(locale)
+    if (tag.isEmpty()) return base
+    // Only the locale is set: an empty Configuration overrides nothing else, so
+    // orientation and screen size still follow the device.
+    val override = Configuration().apply { setLocale(locale) }
+    return base.createConfigurationContext(override)
 }

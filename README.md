@@ -2,7 +2,7 @@
 
 **See what takes up the space on your Android phone, and remove what is not needed.**
 
-![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)
+![Android 11+](https://img.shields.io/badge/Android-11%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Compose-7F52FF?logo=kotlin&logoColor=white)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/3edc4rfv5rdx/DiskMap)](https://github.com/3edc4rfv5rdx/DiskMap/releases/latest)

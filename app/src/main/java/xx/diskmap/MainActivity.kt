@@ -1,6 +1,7 @@
 package xx.diskmap
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -41,6 +42,10 @@ class MainActivity : ComponentActivity() {
 
     /** All-files access; re-read on every resume, since it is granted in system settings. */
     private var hasAccess by mutableStateOf(false)
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(localizedContext(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

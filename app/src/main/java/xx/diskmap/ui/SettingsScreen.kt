@@ -1,5 +1,6 @@
 package xx.diskmap.ui
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -49,6 +50,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val activity = LocalActivity.current
     val themeMode by AppSettings.themeMode.collectAsState()
     val accentIndex by AppSettings.accentIndex.collectAsState()
 
@@ -171,8 +173,8 @@ fun SettingsScreen(
             onDismiss = { editing = Editing.NONE },
             onPick = {
                 editing = Editing.NONE
-                // The system persists this and recreates the activity.
-                setLanguageTag(context, it.tag)
+                // Persisted, and the activity recreated in the new language.
+                activity?.let { a -> setLanguageTag(a, it.tag) }
             },
         )
 
