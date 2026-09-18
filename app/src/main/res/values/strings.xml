@@ -61,5 +61,5 @@
     <string name="dup_freeable">Can be freed</string>
     <string name="keep_one">Keep one of each</string>
     <string name="dup_hint">Hold a copy or tap its icon to pick it</string>
-    <string name="dup_keep_warning">Keep at least one copy of each</string>
+    <string name="dup_all_picked">every copy of a group</string>
 </resources>

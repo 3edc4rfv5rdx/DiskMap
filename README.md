@@ -39,7 +39,7 @@ the app's own trash or for good.
 - **Duplicates** (⋮ menu): files of 1 MB and more with the same content anywhere under
   the current folder, found by size, then a hash of both ends, then a full hash.
   *Keep one of each* picks every copy but the likely original: a name without
-  "(1)" or "copy", then the oldest. A group can never lose all its copies.
+  "(1)" or "copy", then the oldest. Picking every copy of a group is allowed; the bar warns of it.
 - **⋮ menu**: Rescan, Duplicates, Settings and About.
 - **Settings**: light/dark theme, accent colour, language (English, Русский,
   Українська) and an update check.

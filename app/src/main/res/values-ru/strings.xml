@@ -61,5 +61,5 @@
     <string name="dup_freeable">Можно освободить</string>
     <string name="keep_one">Оставить по одной</string>
     <string name="dup_hint">Удержание или нажатие на значок выделяет копию</string>
-    <string name="dup_keep_warning">Оставьте хотя бы одну копию</string>
+    <string name="dup_all_picked">все копии группы</string>
 </resources>

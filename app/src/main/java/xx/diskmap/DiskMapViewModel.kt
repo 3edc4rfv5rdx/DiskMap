@@ -341,13 +341,12 @@ class DiskMapViewModel(app: Application) : AndroidViewModel(app) {
         }.toSet()
     }
 
-    /** True when some group would lose every copy: that is never allowed. */
+    /** True when some group would lose every copy: allowed, but the bar warns of it. */
     fun wouldWipeAGroup(): Boolean =
         dupGroups.orEmpty().any { g -> g.copies.all { it.path in dupPicked } }
 
     fun deleteDuplicates(toTrash: Boolean) {
         val tree = root ?: return
-        if (wouldWipeAGroup()) return
         val nodes = dupPicked.mapNotNull { tree.find(it) }
         delete(nodes, toTrash) {
             // Whatever is gone leaves its group; a group of one is no longer one.

@@ -119,15 +119,16 @@ fun DuplicatesScreen(vm: DiskMapViewModel, modifier: Modifier = Modifier) {
 
         val pickedCopies = groups.orEmpty().flatMap { it.copies }.filter { it.path in picked }
         val wipes = vm.wouldWipeAGroup()
-        val canDelete = pickedCopies.isNotEmpty() && !wipes && !vm.busy && !vm.scanning
+        val canDelete = pickedCopies.isNotEmpty() && !vm.busy && !vm.scanning
         ActionBar(
             active = pickedCopies.isNotEmpty(),
             title = pickedTitle(pickedCopies.map { it.name }),
-            detail = if (wipes) {
-                stringResource(R.string.dup_keep_warning)
-            } else {
-                formatSize(context, pickedCopies.sumOf { it.size })
-            },
+            // Every copy of a group may go, when that is what was picked; the
+            // bar only says so.
+            detail = dotted(
+                formatSize(context, pickedCopies.sumOf { it.size }),
+                if (wipes) stringResource(R.string.dup_all_picked) else null,
+            ),
             detailIsWarning = wipes,
             hint = stringResource(R.string.dup_hint),
             canDelete = canDelete,
