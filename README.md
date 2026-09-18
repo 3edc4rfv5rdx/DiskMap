@@ -51,7 +51,8 @@ the app's own trash or for good.
 
 Download the APK from the [latest release](https://github.com/3edc4rfv5rdx/DiskMap/releases/latest):
 
-`diskmap-<version>-arm64-v8a.apk` runs on almost every modern phone.
+`diskmap-<version>-arm64-v8a.apk` runs on almost every modern phone;
+`diskmap-<version>-armeabi-v7a.apk` is for a 32-bit one or a TV box.
 
 On first launch the app asks for **All files access**. Without it, the app cannot
 measure folders or delete from them.

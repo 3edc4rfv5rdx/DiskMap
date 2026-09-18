@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- I: Releases carry an armeabi-v7a APK for 32-bit ARM phones and TV boxes
 ## v0.2.25 (2026-09-17)
 - I: Lint skips the shared updater and About modules, the newer-version checks and the v26 icon folder
 - R: The unused "close" string is gone
