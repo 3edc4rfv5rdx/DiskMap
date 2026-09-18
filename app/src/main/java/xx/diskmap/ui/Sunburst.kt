@@ -139,16 +139,14 @@ fun Sunburst(
                 alpha = alphaOf(arc.node),
             )
             if (selection.holds(arc.node)) {
-                // Along the outer edge for a folder, through the middle for a
-                // file, so a picked arc also says which of the two it is.
-                val lineR = if (arc.node.isDir) mid + width / 2 else mid
+                // Through the middle of the arc, for a folder and a file alike.
                 drawArc(
                     color = outline,
                     startAngle = arc.start - 90f + gapDeg / 2,
                     sweepAngle = sweep,
                     useCenter = false,
-                    topLeft = Offset(g.center.x - lineR, g.center.y - lineR),
-                    size = Size(lineR * 2, lineR * 2),
+                    topLeft = Offset(g.center.x - mid, g.center.y - mid),
+                    size = Size(mid * 2, mid * 2),
                     style = Stroke(width = SELECTION_OUTLINE.toPx()),
                 )
             }

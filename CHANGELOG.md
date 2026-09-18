@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: A picked folder on the rings is marked through the middle of its arc too, like a file
 - F: Duplicates can go with every copy of a group when all of them are picked; the bar warns in red instead of refusing
 - F: On the rings and the tiles a tap views a file too, as in the lists, and never selects; holding selects
 - E: A size label that does not fit tries the other side of its dot and other places along its arc before it is dropped; one on the left half no longer runs into the centre and vanishes
