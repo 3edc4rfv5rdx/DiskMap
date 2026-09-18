@@ -43,6 +43,9 @@ class MainActivity : ComponentActivity() {
     /** All-files access; re-read on every resume, since it is granted in system settings. */
     private var hasAccess by mutableStateOf(false)
 
+    /** No settings screen on this device can grant the access, as on some TV boxes. */
+    private var accessUnavailable by mutableStateOf(false)
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(localizedContext(newBase))
     }
@@ -68,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     if (hasAccess) {
                         DiskMapScreen(onAbout = ::showAbout)
                     } else {
-                        AccessScreen(onGrant = ::requestAccess)
+                        AccessScreen(onGrant = ::requestAccess, unavailable = accessUnavailable)
                     }
                 }
             }
@@ -103,11 +106,20 @@ class MainActivity : ComponentActivity() {
             Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
             Uri.fromParts("package", packageName, null),
         )
-        try {
-            startActivity(own)
-        } catch (e: ActivityNotFoundException) {
-            // Some builds only have the list of all apps.
-            startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+        // Some builds only have the list of all apps, and some TV boxes not even
+        // that: the app's own page is the last place the access may be found.
+        val fallbacks = listOf(
+            own,
+            Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)),
+        )
+        accessUnavailable = fallbacks.none { intent ->
+            try {
+                startActivity(intent)
+                true
+            } catch (e: ActivityNotFoundException) {
+                false
+            }
         }
     }
 

@@ -4,6 +4,7 @@
     <string name="access_title">Нужен доступ ко всем файлам</string>
     <string name="access_text">Без него приложение не может измерить папки и удалить ненужное</string>
     <string name="access_grant">Дать доступ</string>
+    <string name="access_unavailable">На этом устройстве нет экрана настроек для выдачи доступа</string>
     <string name="more_options">Ещё</string>
     <string name="rescan">Пересканировать</string>
     <string name="trash">Корзина</string>

@@ -4,6 +4,7 @@
     <string name="access_title">Потрібен доступ до всіх файлів</string>
     <string name="access_text">Без нього застосунок не може виміряти теки та видалити непотрібне</string>
     <string name="access_grant">Надати доступ</string>
+    <string name="access_unavailable">На цьому пристрої немає екрана налаштувань для надання доступу</string>
     <string name="more_options">Ще</string>
     <string name="rescan">Пересканувати</string>
     <string name="trash">Кошик</string>

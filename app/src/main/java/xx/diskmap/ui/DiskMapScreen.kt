@@ -456,9 +456,9 @@ fun fileViewer(vm: DiskMapViewModel): (String) -> Unit {
     return { path -> activity?.let { vm.view(it, path) } }
 }
 
-/** Shown until all-files access is granted. */
+/** Shown until all-files access is granted; [unavailable] once no screen to grant it was found. */
 @Composable
-fun AccessScreen(onGrant: () -> Unit) {
+fun AccessScreen(onGrant: () -> Unit, unavailable: Boolean) {
     Column(
         Modifier.fillMaxSize().padding(32.dp),
         verticalArrangement = Arrangement.Center,
@@ -475,5 +475,12 @@ fun AccessScreen(onGrant: () -> Unit) {
         )
         Spacer(Modifier.height(24.dp))
         FilledTonalButton(onClick = onGrant) { Text(stringResource(R.string.access_grant)) }
+        if (unavailable) {
+            Spacer(Modifier.height(16.dp))
+            Text(
+                stringResource(R.string.access_unavailable) + ".",
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 }

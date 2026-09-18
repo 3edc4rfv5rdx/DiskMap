@@ -4,6 +4,7 @@
     <string name="access_title">All files access needed</string>
     <string name="access_text">Without it the app cannot measure folders or delete what is not needed</string>
     <string name="access_grant">Grant access</string>
+    <string name="access_unavailable">This device has no settings screen to grant the access</string>
     <string name="more_options">More options</string>
     <string name="rescan">Rescan</string>
     <string name="trash">Trash</string>

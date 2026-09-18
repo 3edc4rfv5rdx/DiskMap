@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- E: Grant access no longer crashes a device without the all-files screen: it falls back to the app's settings page, then says the access cannot be granted here
 - N: The app shows on the Android TV home screen, with a banner of its own
 - N: The app installs on Android 11 and up, not 13 and up, so a TV box like the TOX3 takes it; below 13 the app keeps the chosen language itself
 - I: Releases carry an armeabi-v7a APK for 32-bit ARM phones and TV boxes
