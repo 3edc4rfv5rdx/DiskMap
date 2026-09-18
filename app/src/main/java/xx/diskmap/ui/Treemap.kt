@@ -70,7 +70,8 @@ fun Treemap(
         val gap = 2.dp.toPx()
         val pad = 6.dp.toPx()
         val radius = CornerRadius(4.dp.toPx())
-        val framePadX = 4.dp.toPx()
+        val framePadX = SIZE_BOX_PAD_X.toPx()
+        val framePadY = SIZE_BOX_PAD_Y.toPx()
         val hasSelection = cells.any { c -> c.node != null && selection.holds(c.node) }
 
         for (cell in cells) {
@@ -124,6 +125,7 @@ fun Treemap(
             // inset out of the text's width.
             val folder = cell.node?.isDir == true
             val frameInset = if (folder) framePadX else 0f
+            val frameInsetY = if (folder) framePadY else 0f
             val sizeText = measurer.measure(
                 text = formatSize(context, cell.size),
                 style = TextStyle(color = ink, fontSize = 12.sp),
@@ -133,16 +135,17 @@ fun Treemap(
             )
             clipRect(topLeft.x, topLeft.y, topLeft.x + w, topLeft.y + h) {
                 drawText(title, topLeft = topLeft + Offset(pad, pad / 2))
-                if (h > title.size.height + sizeText.size.height + pad) {
-                    val sizeAt = topLeft + Offset(pad + frameInset, pad / 2 + title.size.height)
+                if (h > title.size.height + sizeText.size.height + frameInsetY * 2 + pad) {
+                    val sizeAt = topLeft + Offset(pad + frameInset, pad / 2 + title.size.height + frameInsetY)
                     drawText(sizeText, topLeft = sizeAt)
                     if (folder) {
-                        val frameHeight = sizeText.size.height.toFloat()
-                        drawRoundRect(
+                        drawRect(
                             color = ink,
-                            topLeft = sizeAt - Offset(frameInset, 0f),
-                            size = Size(sizeText.size.width + frameInset * 2, frameHeight),
-                            cornerRadius = CornerRadius(frameHeight / 2),
+                            topLeft = sizeAt - Offset(frameInset, frameInsetY),
+                            size = Size(
+                                sizeText.size.width + frameInset * 2,
+                                sizeText.size.height + frameInsetY * 2,
+                            ),
                             style = Stroke(width = FOLDER_FRAME.toPx()),
                         )
                     }

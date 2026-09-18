@@ -167,14 +167,16 @@ fun Sunburst(
 
         // Size labels: a dot on the middle of the arc says which arc the number
         // belongs to, so the number itself may run over its neighbours. It sits
-        // on a plate of the window colour to stay readable there. Larger arcs
-        // are labelled first, and a label that would cover another is dropped.
+        // on a plate of the window colour to stay readable there. The inner rings
+        // are labelled first, the larger arcs first within a ring, and a label
+        // that would cover another is dropped.
         val dotR = 3.5.dp.toPx()
         val dotGap = 3.dp.toPx()
-        val platePad = 3.dp.toPx()
+        val padX = SIZE_BOX_PAD_X.toPx()
+        val padY = SIZE_BOX_PAD_Y.toPx()
         // The hub is taken from the start: no label covers the centre.
         val placed = arrayListOf(Rect(g.center, g.hub))
-        for (arc in arcs.sortedByDescending { it.sweep * (it.depth + 1) }) {
+        for (arc in arcs.sortedWith(compareBy<SunburstArc> { it.depth }.thenByDescending { it.sweep })) {
             if (arc.sweep < LABEL_MIN_SWEEP) continue
             val mid = g.hub + g.ring * (arc.depth - 0.5f)
             val arcLength = (mid * Math.toRadians(arc.sweep.toDouble())).toFloat()
@@ -191,9 +193,13 @@ fun Sunburst(
             // would leave the canvas.
             val tw = sizeLabel.size.width.toFloat()
             val th = sizeLabel.size.height.toFloat()
-            val rightSide = cx + dotR + dotGap + tw + platePad <= size.width
-            val textLeft = if (rightSide) cx + dotR + dotGap else cx - dotR - dotGap - tw
-            val plate = Rect(textLeft - platePad, cy - th / 2, textLeft + tw + platePad, cy + th / 2)
+            // A folder's size is framed in a square box, a file's sits on a
+            // round plate of the same size.
+            val folder = arc.node.isDir
+            val toText = dotR + dotGap + padX
+            val rightSide = cx + toText + tw + padX <= size.width
+            val textLeft = if (rightSide) cx + toText else cx - toText - tw
+            val plate = Rect(textLeft - padX, cy - th / 2 - padY, textLeft + tw + padX, cy + th / 2 + padY)
             // The dot is kept clear as well, or a later plate could hide it.
             val dot = Rect(Offset(cx, cy), dotR)
             if (placed.any { it.overlaps(plate) || it.overlaps(dot) }) continue
@@ -207,16 +213,14 @@ fun Sunburst(
                 color = plateColor,
                 topLeft = plate.topLeft,
                 size = plate.size,
-                cornerRadius = CornerRadius(th / 2),
+                cornerRadius = if (folder) CornerRadius.Zero else CornerRadius(plate.height / 2),
                 alpha = 0.8f * alpha,
             )
-            // A folder's size is framed, a file's is not.
-            if (arc.node.isDir) {
-                drawRoundRect(
+            if (folder) {
+                drawRect(
                     color = labelColor,
                     topLeft = plate.topLeft,
                     size = plate.size,
-                    cornerRadius = CornerRadius(th / 2),
                     style = Stroke(width = FOLDER_FRAME.toPx()),
                     alpha = alpha,
                 )

@@ -3,6 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: Size labels on the rings go to the inner rings first, the larger arcs first within each
+- F: The plate under a file's size on the rings is larger
+- F: The frame around a folder's size is square, twice as thick and roomier, so it shows
 - F: On the rings and the tiles a folder's size is framed, and a picked file is marked through the middle of its arc rather than along the edge
 - F: In the lists a tap opens a folder or views a file, and holding a row or tapping its colour strip or icon selects it; the picked name in the action bar views the file too
 - F: On a wide screen the rings take the whole height, with the path and the summary over the list beside them, and the action bar is one row
