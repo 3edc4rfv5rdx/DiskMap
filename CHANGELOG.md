@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: Tile labels stay white on the blues and the darker colours; black goes only on the bright ones
 - E: Tile labels are black on the bright colours, not white on every tile, whichever reads better
 - E: The action bar sits right above the navigation bar, no longer a second bar's height higher, and the list above it gets the room
 - E: Grant access no longer crashes a device without the all-files screen: it falls back to the app's settings page, then says the access cannot be granted here

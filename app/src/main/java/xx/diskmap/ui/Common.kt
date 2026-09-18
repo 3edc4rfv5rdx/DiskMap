@@ -141,13 +141,14 @@ class ChartColors(
 }
 
 /**
- * Black or white, whichever stands out more on [fill]. The two contrast
- * equally at a relative luminance of about 0.18, not at the middle of the
- * scale: most of the series colours are bright enough for black.
+ * Black or white, whichever reads better on [fill]. By the WCAG ratio the two
+ * tie near 0.18 luminance, but that puts black on the mid blues, where white
+ * reads better to the eye; the switch is set higher, so black goes only on
+ * the plainly bright colours.
  */
 fun inkOn(fill: Color): Color = if (fill.luminance() > INK_CROSSOVER) Color.Black else Color.White
 
-private const val INK_CROSSOVER = 0.179f
+private const val INK_CROSSOVER = 0.25f
 
 @Composable
 fun chartColors(): ChartColors {
