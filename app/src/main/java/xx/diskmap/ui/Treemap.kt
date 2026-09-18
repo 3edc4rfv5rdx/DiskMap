@@ -12,10 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -80,12 +79,13 @@ fun Treemap(
             val topLeft = Offset(cell.left + gap / 2, cell.top + gap / 2)
             val fill = colors.fill(cell.slot)
             val picked = cell.node != null && selection.holds(cell.node)
+            val alpha = if (!hasSelection || picked) 1f else DIMMED_ALPHA
             drawRoundRect(
                 color = fill,
                 topLeft = topLeft,
                 size = Size(w, h),
                 cornerRadius = radius,
-                alpha = if (!hasSelection || picked) 1f else DIMMED_ALPHA,
+                alpha = alpha,
             )
             if (picked) {
                 val stroke = SELECTION_OUTLINE.toPx()
@@ -101,7 +101,8 @@ fun Treemap(
             // Direct labels, where the cell is big enough to hold one.
             val textWidth = (w - pad * 2).toInt()
             if (textWidth < 24.dp.toPx() || h < 22.dp.toPx()) continue
-            val ink = if (fill.luminance() > 0.45f) Color.Black else Color.White
+            // Judged on the tile as drawn: a dimmed one is mostly the surface.
+            val ink = inkOn(fill.copy(alpha = alpha).compositeOver(colors.surface))
             val name = cell.node?.name ?: otherLabel
             val title = measurer.measure(
                 text = name,
