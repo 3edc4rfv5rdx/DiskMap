@@ -314,55 +314,64 @@ private fun ColumnScope.MapContent(
     val version = vm.treeVersion
     val viewer = fileViewer(vm)
     val onView: (Node) -> Unit = { viewer(it.path) }
-    Breadcrumbs(current, onOpen = vm::open, onUp = { vm.up() })
-    Summary(vm, current)
+    val header = @Composable {
+        Breadcrumbs(current, onOpen = vm::open, onUp = { vm.up() })
+        Summary(vm, current)
+    }
 
-    val chart = Modifier.weight(1f).fillMaxWidth()
-    when (viewMode) {
-        ViewMode.RINGS -> BoxWithConstraints(chart) {
-            val rings = @Composable { m: Modifier ->
-                Sunburst(
-                    folder = current,
-                    treeVersion = version,
-                    selection = vm.selection,
-                    onOpen = vm::open,
-                    onToggle = vm::toggle,
-                    onUp = { vm.up() },
-                    modifier = m.padding(4.dp),
-                )
-            }
-            val legend = @Composable { m: Modifier ->
-                NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, m)
-            }
-            // The rings draw into the largest circle that fits; they get most
-            // of the height and the legend the rest.
-            if (maxWidth > maxHeight) {
-                Row(Modifier.fillMaxSize()) {
-                    rings(Modifier.weight(1f).fillMaxHeight())
+    BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+        val rings = @Composable { m: Modifier ->
+            Sunburst(
+                folder = current,
+                treeVersion = version,
+                selection = vm.selection,
+                onOpen = vm::open,
+                onToggle = vm::toggle,
+                onUp = { vm.up() },
+                modifier = m.padding(4.dp),
+            )
+        }
+        val legend = @Composable { m: Modifier ->
+            NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, m)
+        }
+        // The rings draw into the largest circle that fits. Side by side, the
+        // path and the summary go over the legend only, so the rings keep the
+        // whole height; stacked, they get most of it and the legend the rest.
+        if (viewMode == ViewMode.RINGS && maxWidth > maxHeight) {
+            Row(Modifier.fillMaxSize()) {
+                rings(Modifier.weight(1f).fillMaxHeight())
+                Column(Modifier.weight(1f)) {
+                    header()
                     legend(Modifier.weight(1f))
                 }
-            } else {
-                Column(Modifier.fillMaxSize()) {
-                    rings(Modifier.weight(1.8f).fillMaxWidth())
-                    legend(Modifier.weight(1f))
+            }
+        } else {
+            Column(Modifier.fillMaxSize()) {
+                header()
+                val chart = Modifier.weight(1f).fillMaxWidth()
+                when (viewMode) {
+                    ViewMode.RINGS -> Column(chart) {
+                        rings(Modifier.weight(1.8f).fillMaxWidth())
+                        legend(Modifier.weight(1f))
+                    }
+
+                    ViewMode.TILES -> Treemap(
+                        folder = current,
+                        treeVersion = version,
+                        selection = vm.selection,
+                        onOpen = vm::open,
+                        onToggle = vm::toggle,
+                        modifier = chart.padding(8.dp),
+                    )
+
+                    ViewMode.LIST -> NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, chart)
+
+                    ViewMode.LARGEST -> NodeList(
+                        current, version, vm.selection, vm::open, vm::toggle, onView, chart, largest = true,
+                    )
                 }
             }
         }
-
-        ViewMode.TILES -> Treemap(
-            folder = current,
-            treeVersion = version,
-            selection = vm.selection,
-            onOpen = vm::open,
-            onToggle = vm::toggle,
-            modifier = chart.padding(8.dp),
-        )
-
-        ViewMode.LIST -> NodeList(current, version, vm.selection, vm::open, vm::toggle, onView, chart)
-
-        ViewMode.LARGEST -> NodeList(
-            current, version, vm.selection, vm::open, vm::toggle, onView, chart, largest = true,
-        )
     }
 
     SelectionBar(vm, current, onDelete)

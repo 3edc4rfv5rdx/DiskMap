@@ -1,11 +1,12 @@
 package xx.diskmap.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,7 +33,14 @@ import androidx.compose.ui.unit.dp
 import xx.diskmap.R
 
 /** Three buttons share the bar's width; the stock side padding leaves their labels no room. */
-private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+private val BAR_BUTTON_PADDING = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+
+/** Below the stock 40dp: the bar is under every list, and the lists want the height. */
+private val BAR_BUTTON_HEIGHT = 34.dp
+private val BAR_ICON_BUTTON = 32.dp
+
+/** From this width on the bar is one row: the buttons beside the title. */
+private val WIDE_BAR = 600.dp
 
 /**
  * The bar under anything items are picked from: what is picked, and Delete,
@@ -61,22 +69,20 @@ fun ActionBar(
         tonalElevation = 2.dp,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Box(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 4.dp)) {
-            // Laid out even when inactive, only invisible and inert then: it is
-            // what gives the bar its height.
-            Column(Modifier.alpha(if (active) 1f else 0f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+        BoxWithConstraints(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 4.dp)) {
+            val picked = @Composable { m: Modifier ->
+                Row(m, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             text = detail,
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = if (detailIsWarning) {
                                 MaterialTheme.colorScheme.error
                             } else {
@@ -89,34 +95,53 @@ fun ActionBar(
                     IconButton(
                         onClick = { onView?.invoke() },
                         enabled = active && onView != null,
-                        modifier = Modifier.size(COMPACT_BUTTON).alpha(if (onView != null) 1f else 0f),
+                        modifier = Modifier.size(BAR_ICON_BUTTON).alpha(if (onView != null) 1f else 0f),
                     ) {
                         Icon(Icons.Outlined.Visibility, stringResource(R.string.view_file))
                     }
                 }
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+            }
+            val buttons = @Composable { m: Modifier ->
+                Row(m, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val button = Modifier.weight(1f).height(BAR_BUTTON_HEIGHT)
                     OutlinedButton(
                         onClick = onDelete,
                         enabled = active && canDelete,
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                         contentPadding = BAR_BUTTON_PADDING,
-                        modifier = Modifier.weight(1f),
+                        modifier = button,
                     ) { Text(stringResource(R.string.delete), maxLines = 1) }
                     FilledTonalButton(
                         onClick = onCancel,
                         enabled = active,
                         contentPadding = BAR_BUTTON_PADDING,
-                        modifier = Modifier.weight(1f),
+                        modifier = button,
                     ) { Text(stringResource(R.string.cancel), maxLines = 1) }
                     Button(
                         onClick = onTrash,
                         enabled = active && canTrash,
                         contentPadding = BAR_BUTTON_PADDING,
-                        modifier = Modifier.weight(1f),
+                        modifier = button,
                     ) { Text(stringResource(R.string.to_trash), maxLines = 1) }
+                }
+            }
+            // Laid out even when inactive, only invisible and inert then: it is
+            // what gives the bar its height. Wide enough, as a phone on its
+            // side, the buttons go beside the title instead of under it.
+            val shown = Modifier.alpha(if (active) 1f else 0f)
+            if (maxWidth >= WIDE_BAR) {
+                Row(
+                    shown,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    picked(Modifier.weight(1f))
+                    buttons(Modifier.weight(1f))
+                }
+            } else {
+                Column(shown) {
+                    picked(Modifier)
+                    buttons(Modifier.fillMaxWidth().padding(top = 2.dp))
                 }
             }
             if (!active) {
