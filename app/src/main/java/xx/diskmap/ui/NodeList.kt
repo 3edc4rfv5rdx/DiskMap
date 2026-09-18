@@ -44,9 +44,8 @@ import xx.diskmap.colorSlot
 import xx.diskmap.largestFiles
 
 /**
- * The children of [folder], largest first. A tap opens a folder and views a
- * file, selecting or not; holding a row or tapping its colour strip or icon
- * selects it. Under the rings it doubles as their legend: each row wears its
+ * The children of [folder], largest first; taps as in [tapItem], and holding
+ * a row or tapping its colour strip or icon selects it. Under the rings it doubles as their legend: each row wears its
  * item's colour.
  *
  * With [largest], the [LARGEST_LIMIT] largest files anywhere under [folder]
@@ -84,7 +83,7 @@ fun NodeList(
                 whole = folder.size,
                 color = colors.fill(colorSlot(i)),
                 selected = selection.holds(node),
-                onClick = { if (node.isDir) onOpen(node) else onView(node) },
+                onClick = { tapItem(node, onOpen, onView) },
                 onSelect = { onToggle(node) },
             )
         }

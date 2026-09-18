@@ -25,7 +25,7 @@
     <string name="free">Свободно</string>
     <string name="other">Прочее</string>
     <string name="empty_folder">Пустая папка</string>
-    <string name="hint_open">Нажатие открывает папку</string>
+    <string name="hint_open">Нажатие открывает</string>
     <string name="hint_select">удержание выделяет</string>
     <string name="view_file">Просмотр</string>
     <string name="no_viewer">Нет приложения для этого файла</string>

@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: On the rings and the tiles a tap views a file too, as in the lists, and never selects; holding selects
 - E: A size label that does not fit tries the other side of its dot and other places along its arc before it is dropped; one on the left half no longer runs into the centre and vanishes
 - F: Size labels on the rings go to the inner rings first, the larger arcs first within each
 - F: The plate under a file's size on the rings is larger

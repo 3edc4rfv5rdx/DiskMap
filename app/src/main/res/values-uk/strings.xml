@@ -25,7 +25,7 @@
     <string name="free">Вільно</string>
     <string name="other">Інше</string>
     <string name="empty_folder">Порожня тека</string>
-    <string name="hint_open">Натискання відкриває теку</string>
+    <string name="hint_open">Натискання відкриває</string>
     <string name="hint_select">утримання виділяє</string>
     <string name="view_file">Перегляд</string>
     <string name="no_viewer">Немає застосунку для цього файлу</string>

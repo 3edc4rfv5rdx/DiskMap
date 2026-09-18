@@ -40,6 +40,7 @@ fun Treemap(
     selection: List<Node>,
     onOpen: (Node) -> Unit,
     onToggle: (Node) -> Unit,
+    onView: (Node) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -47,7 +48,6 @@ fun Treemap(
     val outline = MaterialTheme.colorScheme.onSurface
     val otherLabel = stringResource(R.string.other)
     val measurer = rememberTextMeasurer()
-    val selecting = selection.isNotEmpty()
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val cells = remember(folder, treeVersion, canvasSize) {
         treemapCells(folder, canvasSize.width.toFloat(), canvasSize.height.toFloat())
@@ -56,12 +56,12 @@ fun Treemap(
     Canvas(
         modifier
             .onSizeChanged { canvasSize = it }
-            .pointerInput(cells, selecting) {
+            .pointerInput(cells) {
                 fun nodeAt(p: Offset): Node? = cells.firstOrNull { it.contains(p.x, p.y) }?.node
                 detectTapGestures(
                     onTap = { p ->
                         val node = nodeAt(p) ?: return@detectTapGestures
-                        tapItem(node, selecting, onOpen, onToggle)
+                        tapItem(node, onOpen, onView)
                     },
                     onLongPress = { p -> nodeAt(p)?.let(onToggle) },
                 )

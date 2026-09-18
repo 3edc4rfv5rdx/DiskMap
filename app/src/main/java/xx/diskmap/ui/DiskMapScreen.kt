@@ -327,6 +327,7 @@ private fun ColumnScope.MapContent(
                 selection = vm.selection,
                 onOpen = vm::open,
                 onToggle = vm::toggle,
+                onView = onView,
                 onUp = { vm.up() },
                 modifier = m.padding(4.dp),
             )
@@ -361,6 +362,7 @@ private fun ColumnScope.MapContent(
                         selection = vm.selection,
                         onOpen = vm::open,
                         onToggle = vm::toggle,
+                        onView = onView,
                         modifier = chart.padding(8.dp),
                     )
 

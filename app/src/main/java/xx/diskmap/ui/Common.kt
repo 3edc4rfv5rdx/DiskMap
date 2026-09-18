@@ -198,12 +198,11 @@ val SELECTION_OUTLINE = 4.dp
 fun List<Node>.holds(node: Node): Boolean = any { it === node }
 
 /**
- * What a plain tap on an item does, the same in every view: while anything is
- * selected it adds or removes the item, otherwise a folder opens and a file is
- * selected.
+ * What a plain tap on an item does, the same in every view and whether or not
+ * anything is selected: a folder opens and a file is viewed. Selecting is a hold.
  */
-fun tapItem(node: Node, selecting: Boolean, onOpen: (Node) -> Unit, onToggle: (Node) -> Unit) {
-    if (node.isDir && !selecting) onOpen(node) else onToggle(node)
+fun tapItem(node: Node, onOpen: (Node) -> Unit, onView: (Node) -> Unit) {
+    if (node.isDir) onOpen(node) else onView(node)
 }
 
 /** "Files: N", the one way a file count is written. */

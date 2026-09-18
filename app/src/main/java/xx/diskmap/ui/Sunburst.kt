@@ -80,6 +80,7 @@ fun Sunburst(
     selection: List<Node>,
     onOpen: (Node) -> Unit,
     onToggle: (Node) -> Unit,
+    onView: (Node) -> Unit,
     onUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -92,10 +93,9 @@ fun Sunburst(
     val plateColor = MaterialTheme.colorScheme.surface
     val measurer = rememberTextMeasurer()
     val arcs = remember(folder, treeVersion) { sunburstArcs(folder) }
-    val selecting = selection.isNotEmpty()
 
     Canvas(
-        modifier.pointerInput(arcs, selecting) {
+        modifier.pointerInput(arcs) {
             fun arcAt(p: Offset): Pair<Int, SunburstArc?> {
                 val g = RingGeometry(Size(size.width.toFloat(), size.height.toFloat()))
                 val depth = g.depthAt(p)
@@ -107,7 +107,7 @@ fun Sunburst(
                     when {
                         depth == 0 -> onUp()
                         arc == null -> Unit
-                        else -> tapItem(arc.node, selecting, onOpen, onToggle)
+                        else -> tapItem(arc.node, onOpen, onView)
                     }
                 },
                 onLongPress = { p -> arcAt(p).second?.let { onToggle(it.node) } },

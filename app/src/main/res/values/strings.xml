@@ -25,7 +25,7 @@
     <string name="free">Free</string>
     <string name="other">Other</string>
     <string name="empty_folder">Empty folder</string>
-    <string name="hint_open">Tap a folder to open it</string>
+    <string name="hint_open">Tap to open</string>
     <string name="hint_select">hold to select</string>
     <string name="view_file">View</string>
     <string name="no_viewer">No app opens this file</string>
