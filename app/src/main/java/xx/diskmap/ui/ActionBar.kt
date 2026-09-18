@@ -1,5 +1,6 @@
 package xx.diskmap.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -47,8 +48,8 @@ private val WIDE_BAR = 600.dp
  * Cancel and To trash. With nothing [active] it shows [hint] instead, but keeps
  * the same height, so the content above it never jumps.
  *
- * [onView], when given, puts an eye button beside the title; its place is kept
- * when it is null.
+ * [onView], when given, puts an eye button beside the title and makes the
+ * title tappable too; the button's place is kept when it is null.
  */
 @Composable
 fun ActionBar(
@@ -71,18 +72,21 @@ fun ActionBar(
     ) {
         BoxWithConstraints(Modifier.navigationBarsPadding().padding(horizontal = 12.dp, vertical = 4.dp)) {
             val picked = @Composable { m: Modifier ->
-                Row(m, verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    m.clickable(enabled = active && onView != null) { onView?.invoke() },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Column(Modifier.weight(1f)) {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             text = detail,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyLarge,
                             color = if (detailIsWarning) {
                                 MaterialTheme.colorScheme.error
                             } else {

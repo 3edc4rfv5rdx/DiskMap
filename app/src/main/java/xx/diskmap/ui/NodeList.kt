@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -45,10 +44,10 @@ import xx.diskmap.colorSlot
 import xx.diskmap.largestFiles
 
 /**
- * The children of [folder], largest first; taps as in [tapItem], hold to
- * select. A file's icon is a button of its own that opens the file, even
- * while selecting. Under the rings it doubles as their legend:
- * each row wears its item's colour.
+ * The children of [folder], largest first. A tap opens a folder and views a
+ * file, selecting or not; holding a row or tapping its colour strip or icon
+ * selects it. Under the rings it doubles as their legend: each row wears its
+ * item's colour.
  *
  * With [largest], the [LARGEST_LIMIT] largest files anywhere under [folder]
  * instead, each with the folder it sits in.
@@ -85,9 +84,8 @@ fun NodeList(
                 whole = folder.size,
                 color = colors.fill(colorSlot(i)),
                 selected = selection.holds(node),
-                onClick = { tapItem(node, selection.isNotEmpty(), onOpen, onToggle) },
-                onLongClick = { onToggle(node) },
-                onView = { onView(node) },
+                onClick = { if (node.isDir) onOpen(node) else onView(node) },
+                onSelect = { onToggle(node) },
             )
         }
     }
@@ -110,8 +108,8 @@ fun NodeRow(
     color: Color,
     selected: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    onView: () -> Unit,
+    // Holding the row or tapping its colour strip or icon, the same for every row.
+    onSelect: () -> Unit,
 ) {
     val context = LocalContext.current
     val scheme = MaterialTheme.colorScheme
@@ -120,33 +118,37 @@ fun NodeRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(if (selected) scheme.primaryContainer else Color.Transparent)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .combinedClickable(onClick = onClick, onLongClick = onSelect)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // The colour the item wears in the charts.
-        Box(
-            Modifier
-                .width(8.dp)
-                .height(36.dp)
-                .background(color, RoundedCornerShape(3.dp))
-        )
-        // A selected row trades its type icon for a check.
-        Icon(
-            imageVector = when {
-                selected -> Icons.Filled.CheckCircle
-                node.isDir -> Icons.Outlined.Folder
-                else -> Icons.Outlined.Description
-            },
-            contentDescription = null,
-            tint = if (selected) scheme.primary else scheme.onSurfaceVariant,
-            modifier = Modifier
-                .padding(horizontal = 2.dp)
-                .size(COMPACT_BUTTON)
-                .clip(CircleShape)
-                .then(if (node.isDir) Modifier else Modifier.clickable(onClick = onView))
-                .padding(9.dp),
-        )
+        // The colour strip and the icon are one target that selects.
+        Row(
+            Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onSelect),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // The colour the item wears in the charts.
+            Box(
+                Modifier
+                    .width(8.dp)
+                    .height(36.dp)
+                    .background(color, RoundedCornerShape(3.dp))
+            )
+            // A selected row trades its type icon for a check.
+            Icon(
+                imageVector = when {
+                    selected -> Icons.Filled.CheckCircle
+                    node.isDir -> Icons.Outlined.Folder
+                    else -> Icons.Outlined.Description
+                },
+                contentDescription = null,
+                tint = if (selected) scheme.primary else scheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(horizontal = 2.dp)
+                    .size(COMPACT_BUTTON)
+                    .padding(9.dp),
+            )
+        }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(

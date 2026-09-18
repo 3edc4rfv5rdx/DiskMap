@@ -108,9 +108,8 @@ fun DuplicatesScreen(vm: DiskMapViewModel, modifier: Modifier = Modifier) {
                                 whole = scope?.size ?: 0L,
                                 color = colors.fill(colorSlot(index)),
                                 selected = copy.path in picked,
-                                onClick = { vm.toggleDuplicate(copy.path) },
-                                onLongClick = { vm.toggleDuplicate(copy.path) },
-                                onView = { viewer(copy.path) },
+                                onClick = { viewer(copy.path) },
+                                onSelect = { vm.toggleDuplicate(copy.path) },
                             )
                         }
                     }

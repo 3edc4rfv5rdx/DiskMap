@@ -3,8 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: In the lists a tap opens a folder or views a file, and holding a row or tapping its colour strip or icon selects it; the picked name in the action bar views the file too
 - F: On a wide screen the rings take the whole height, with the path and the summary over the list beside them, and the action bar is one row
-- F: The action bar is lower: smaller buttons and a smaller title
+- F: The action bar is lower: its buttons are smaller
 - F: Tile labels stay white on the blues and the darker colours; black goes only on the bright ones
 - E: Tile labels are black on the bright colours, not white on every tile, whichever reads better
 - E: The action bar sits right above the navigation bar, no longer a second bar's height higher, and the list above it gets the room
