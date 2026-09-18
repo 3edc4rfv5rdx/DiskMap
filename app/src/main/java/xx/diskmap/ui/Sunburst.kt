@@ -43,6 +43,9 @@ private const val LABEL_MIN_SWEEP = 4f
 /** The shortest arc, at its middle, that still carries a label's dot clearly. */
 private val LABEL_MIN_ARC = 14.dp
 
+/** Where along an arc its label's dot is tried, as fractions of the sweep: the middle first. */
+private val LABEL_SPOTS = floatArrayOf(0.5f, 0.3f, 0.7f, 0.15f, 0.85f)
+
 private class RingGeometry(size: Size) {
     val center = Offset(size.width / 2, size.height / 2)
     val outer = min(size.width, size.height) / 2
@@ -181,34 +184,48 @@ fun Sunburst(
             val mid = g.hub + g.ring * (arc.depth - 0.5f)
             val arcLength = (mid * Math.toRadians(arc.sweep.toDouble())).toFloat()
             if (arcLength < LABEL_MIN_ARC.toPx()) continue
-            val theta = Math.toRadians((arc.start + arc.sweep / 2).toDouble())
-            val cx = g.center.x + mid * sin(theta).toFloat()
-            val cy = g.center.y - mid * cos(theta).toFloat()
             val sizeLabel = measurer.measure(
                 text = formatSize(context, arc.node.size),
                 style = TextStyle(color = labelColor, fontSize = 11.sp, fontWeight = FontWeight.Bold),
                 maxLines = 1,
             )
-            // Beside the dot on the right, or on the left where the right
-            // would leave the canvas.
             val tw = sizeLabel.size.width.toFloat()
             val th = sizeLabel.size.height.toFloat()
             // A folder's size is framed in a square box, a file's sits on a
             // round plate of the same size.
             val folder = arc.node.isDir
             val toText = dotR + dotGap + padX
-            val rightSide = cx + toText + tw + padX <= size.width
-            val textLeft = if (rightSide) cx + toText else cx - toText - tw
-            val plate = Rect(textLeft - padX, cy - th / 2 - padY, textLeft + tw + padX, cy + th / 2 + padY)
-            // The dot is kept clear as well, or a later plate could hide it.
-            val dot = Rect(Offset(cx, cy), dotR)
-            if (placed.any { it.overlaps(plate) || it.overlaps(dot) }) continue
+            // The dot goes on the middle of the arc, or further along it where
+            // the middle is taken; it keeps a dot's width off the arc's ends.
+            // Beside the dot, the label goes away from the centre first, where
+            // it runs over the outer rings rather than the hub, and to the
+            // other side where that leaves the canvas or covers another label.
+            val spot = LABEL_SPOTS.asSequence()
+                .filter { f -> arcLength * minOf(f, 1f - f) >= dotR * 2 }
+                .firstNotNullOfOrNull { f ->
+                    val theta = Math.toRadians((arc.start + arc.sweep * f).toDouble())
+                    val at = Offset(
+                        g.center.x + mid * sin(theta).toFloat(),
+                        g.center.y - mid * cos(theta).toFloat(),
+                    )
+                    // The dot is kept clear as well, or a later plate could hide it.
+                    val dot = Rect(at, dotR)
+                    if (placed.any { it.overlaps(dot) }) return@firstNotNullOfOrNull null
+                    val outward = if (at.x >= g.center.x) 1f else -1f
+                    listOf(outward, -outward).firstNotNullOfOrNull { side ->
+                        val left = if (side > 0) at.x + toText else at.x - toText - tw
+                        Rect(left - padX, at.y - th / 2 - padY, left + tw + padX, at.y + th / 2 + padY)
+                            .takeIf { it.left >= 0f && it.right <= size.width && placed.none { p -> p.overlaps(it) } }
+                    }?.let { plate -> Triple(at, dot, plate) }
+                } ?: continue
+            val (dotAt, dot, plate) = spot
+            val textLeft = plate.left + padX
             placed.add(plate)
             placed.add(dot)
 
             val alpha = alphaOf(arc.node)
             // Dark in the light theme, light in the dark one, like the number.
-            drawCircle(labelColor, radius = dotR, center = Offset(cx, cy), alpha = alpha)
+            drawCircle(labelColor, radius = dotR, center = dotAt, alpha = alpha)
             drawRoundRect(
                 color = plateColor,
                 topLeft = plate.topLeft,
@@ -225,7 +242,7 @@ fun Sunburst(
                     alpha = alpha,
                 )
             }
-            drawText(sizeLabel, topLeft = Offset(textLeft, cy - th / 2), alpha = alpha)
+            drawText(sizeLabel, topLeft = Offset(textLeft, dotAt.y - th / 2), alpha = alpha)
         }
     }
 }
