@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -35,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -121,7 +125,12 @@ fun DiskMapScreen(onAbout: () -> Unit) {
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbar) },
+        snackbarHost = { SnackbarHost(snackbar, Modifier.navigationBarsPadding()) },
+        // The bottom inset is left to the screens: the action bar paints its
+        // plate under the navigation bar and keeps only its buttons above it,
+        // and the Scaffold's own gap on top of that doubled the space below them.
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets
+            .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
         topBar = {
             TopAppBar(
                 expandedHeight = TOP_BAR_HEIGHT,
@@ -219,7 +228,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                 // Switching mid-operation would pull the tree out from under it.
                 onVolume = { if (it !== vm.volume) vm.selectVolume(it) },
                 volumeLocked = vm.busy,
-                modifier = body,
+                modifier = body.navigationBarsPadding(),
             )
             Screen.DUPLICATES -> DuplicatesScreen(vm, body)
             Screen.TRASH -> TrashScreen(
@@ -228,7 +237,7 @@ fun DiskMapScreen(onAbout: () -> Unit) {
                 onRestore = vm::restore,
                 onPurge = vm::purge,
                 onEmpty = vm::emptyTrash,
-                modifier = body,
+                modifier = body.navigationBarsPadding(),
             )
             Screen.MAP -> MapBody(
                 vm = vm,
